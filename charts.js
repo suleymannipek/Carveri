@@ -5,14 +5,27 @@ let charts = { km: null, fuel: null, price: null, landscape: null };
 let fuelChartMode = 'tl';
 let isChartAccordionOpen = false;
 
+// Tema rengini güvenli bir şekilde HTML etiketinden öğren
+function getThemeTextColor() {
+  const activeTheme = document.documentElement.getAttribute("data-theme") || "midnight";
+  return activeTheme === 'light' ? '#475569' : '#94a3b8';
+}
+
+function getThemeGridColor() {
+  const activeTheme = document.documentElement.getAttribute("data-theme") || "midnight";
+  return activeTheme === 'light' ? '#cbd5e1' : '#1e2c4f';
+}
+
 function toggleChartsAccordion() {
   const body = document.getElementById("chartsAccordionBody");
   const icon = document.getElementById("chartAccordionIcon");
   isChartAccordionOpen = !isChartAccordionOpen;
+  
   if (isChartAccordionOpen) {
     body.classList.remove("hidden");
     icon.innerText = "▲ Gizle";
-    const ff = fuels.filter(f => selectedYear === "all" || (f.date && f.date.startsWith(selectedYear)));
+    const activeY = typeof selectedYear !== 'undefined' ? selectedYear : "all";
+    const ff = fuels.filter(f => activeY === "all" || (f.date && f.date.startsWith(activeY)));
     renderCharts(calculateFuelMetrics(ff));
   } else {
     body.classList.add("hidden");
@@ -22,8 +35,10 @@ function toggleChartsAccordion() {
 
 function processMonthlyData(calcFuels) {
   let map = {};
-  const allSortedOdo = odoLogs.slice().sort((a, b) => new Date(a.date) - new Date(b.date));
-  const allSortedFuels = fuels.slice().sort((a, b) => new Date(a.date) - new Date(b.date));
+  const activeY = typeof selectedYear !== 'undefined' ? selectedYear : "all";
+  
+  const allSortedOdo = (typeof odoLogs !== 'undefined' ? odoLogs : []).slice().sort((a, b) => new Date(a.date) - new Date(b.date));
+  const allSortedFuels = (typeof fuels !== 'undefined' ? fuels : []).slice().sort((a, b) => new Date(a.date) - new Date(b.date));
 
   calcFuels.forEach(f => {
     const k = f.date.substring(0, 7);
@@ -34,7 +49,7 @@ function processMonthlyData(calcFuels) {
     map[k].tot += f.total;
   });
 
-  const activeOdo = odoLogs.filter(o => selectedYear === "all" || (o.date && o.date.startsWith(selectedYear)));
+  const activeOdo = (typeof odoLogs !== 'undefined' ? odoLogs : []).filter(o => activeY === "all" || (o.date && o.date.startsWith(activeY)));
   activeOdo.forEach(o => {
     const k = o.date.substring(0, 7);
     if (!map[k]) map[k] = { min: o.km, max: o.km, lit: 0, tot: 0, startBridgeKm: null };
@@ -76,71 +91,115 @@ function processMonthlyData(calcFuels) {
 
 function renderCharts(calcFuels) {
   if (typeof Chart === "undefined" || !isChartAccordionOpen) return;
-  const gC = currentTheme === 'light' ? '#cbd5e1' : '#1e2c4f';
-  const tC = currentTheme === 'light' ? '#475569' : '#94a3b8';
+  
+  const gC = getThemeGridColor();
+  const tC = getThemeTextColor();
   const m = processMonthlyData(calcFuels);
 
   const canvasKm = document.getElementById("monthlyKmCanvas");
-  if (charts.km) { charts.km.destroy(); charts.km = null; }
-  const ctxKm = canvasKm.getContext("2d");
-  let gradKm = ctxKm.createLinearGradient(0, 0, 0, 150);
-  gradKm.addColorStop(0, 'rgba(59, 130, 246, 0.85)');
-  gradKm.addColorStop(1, 'rgba(59, 130, 246, 0.2)');
+  if (canvasKm) {
+    if (charts.km) { charts.km.destroy(); charts.km = null; }
+    const ctxKm = canvasKm.getContext("2d");
+    let gradKm = ctxKm.createLinearGradient(0, 0, 0, 150);
+    gradKm.addColorStop(0, 'rgba(59, 130, 246, 0.85)');
+    gradKm.addColorStop(1, 'rgba(59, 130, 246, 0.2)');
 
-  charts.km = new Chart(ctxKm, {
-    type: 'bar',
-    data: { labels: m.labels.length ? m.labels : ["-"], datasets: [{ data: m.kmData.length ? m.kmData : [0], backgroundColor: gradKm, borderColor: '#3b82f6', borderWidth: 1, borderRadius: 8 }] },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: gC }, ticks: { color: tC, font: { size: 9, weight: 'bold' } } }, y: { grid: { color: gC }, ticks: { color: tC, font: { size: 9 } } } } }
-  });
+    charts.km = new Chart(ctxKm, {
+      type: 'bar',
+      data: { 
+        labels: m.labels.length ? m.labels : ["-"], 
+        datasets: [{ data: m.kmData.length ? m.kmData : [0], backgroundColor: gradKm, borderColor: '#3b82f6', borderWidth: 1, borderRadius: 8 }] 
+      },
+      options: { 
+        responsive: true, 
+        maintainAspectRatio: false, 
+        plugins: { legend: { display: false } }, 
+        scales: { 
+          x: { grid: { color: gC }, ticks: { color: tC, font: { size: 9, weight: 'bold' } } }, 
+          y: { grid: { color: gC }, ticks: { color: tC, font: { size: 9 } } } 
+        } 
+      }
+    });
+  }
 
-  const ctxFuel = document.getElementById("monthlyFuelCanvas").getContext("2d");
-  if (charts.fuel) { charts.fuel.destroy(); charts.fuel = null; }
-  let gradFuel = ctxFuel.createLinearGradient(0, 0, 0, 150);
-  gradFuel.addColorStop(0, 'rgba(245, 158, 11, 0.85)');
-  gradFuel.addColorStop(1, 'rgba(245, 158, 11, 0.2)');
-  const fuelChartVals = fuelChartMode === 'tl' ? (m.costData.length ? m.costData : [0]) : (m.litData.length ? m.litData : [0]);
+  const canvasFuel = document.getElementById("monthlyFuelCanvas");
+  if (canvasFuel) {
+    if (charts.fuel) { charts.fuel.destroy(); charts.fuel = null; }
+    const ctxFuel = canvasFuel.getContext("2d");
+    let gradFuel = ctxFuel.createLinearGradient(0, 0, 0, 150);
+    gradFuel.addColorStop(0, 'rgba(245, 158, 11, 0.85)');
+    gradFuel.addColorStop(1, 'rgba(245, 158, 11, 0.2)');
+    const fuelChartVals = fuelChartMode === 'tl' ? (m.costData.length ? m.costData : [0]) : (m.litData.length ? m.litData : [0]);
 
-  charts.fuel = new Chart(ctxFuel, {
-    type: 'bar',
-    data: { labels: m.labels.length ? m.labels : ["-"], datasets: [{ data: fuelChartVals, backgroundColor: gradFuel, borderColor: '#f59e0b', borderWidth: 1, borderRadius: 8 }] },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: gC }, ticks: { color: tC, font: { size: 9, weight: 'bold' } } }, y: { grid: { color: gC }, ticks: { color: tC, font: { size: 9 } } } } }
-  });
+    charts.fuel = new Chart(ctxFuel, {
+      type: 'bar',
+      data: { 
+        labels: m.labels.length ? m.labels : ["-"], 
+        datasets: [{ data: fuelChartVals, backgroundColor: gradFuel, borderColor: '#f59e0b', borderWidth: 1, borderRadius: 8 }] 
+      },
+      options: { 
+        responsive: true, 
+        maintainAspectRatio: false, 
+        plugins: { legend: { display: false } }, 
+        scales: { 
+          x: { grid: { color: gC }, ticks: { color: tC, font: { size: 9, weight: 'bold' } } }, 
+          y: { grid: { color: gC }, ticks: { color: tC, font: { size: 9 } } } 
+        } 
+      }
+    });
+  }
 
-  const sf = calcFuels.slice().sort((a, b) => new Date(a.date) - new Date(b.date));
-  const ctxPrice = document.getElementById("priceTrendCanvas").getContext("2d");
-  if (charts.price) { charts.price.destroy(); charts.price = null; }
-  let gradPrice = ctxPrice.createLinearGradient(0, 0, 0, 120);
-  gradPrice.addColorStop(0, 'rgba(56, 189, 248, 0.25)');
-  gradPrice.addColorStop(1, 'rgba(56, 189, 248, 0.00)');
+  const canvasPrice = document.getElementById("priceTrendCanvas");
+  if (canvasPrice) {
+    const sf = calcFuels.slice().sort((a, b) => new Date(a.date) - new Date(b.date));
+    if (charts.price) { charts.price.destroy(); charts.price = null; }
+    const ctxPrice = canvasPrice.getContext("2d");
+    let gradPrice = ctxPrice.createLinearGradient(0, 0, 0, 120);
+    gradPrice.addColorStop(0, 'rgba(56, 189, 248, 0.25)');
+    gradPrice.addColorStop(1, 'rgba(56, 189, 248, 0.00)');
 
-  const shortInlineLabels = sf.map(f => {
-    if (!f.date) return "-";
-    const d = new Date(f.date);
-    return `${d.getDate().toString().padStart(2, '0')}.${(d.getMonth() + 1).toString().padStart(2, '0')}`;
-  });
+    const shortInlineLabels = sf.map(f => {
+      if (!f.date) return "-";
+      const d = new Date(f.date);
+      return `${d.getDate().toString().padStart(2, '0')}.${(d.getMonth() + 1).toString().padStart(2, '0')}`;
+    });
 
-  charts.price = new Chart(ctxPrice, {
-    type: 'line',
-    data: { labels: shortInlineLabels.length ? shortInlineLabels : ["-"], datasets: [{ data: sf.length ? sf.map(f => (f.total / f.liters).toFixed(2)) : [0], borderColor: '#38bdf8', backgroundColor: gradPrice, fill: true, tension: 0.3, pointRadius: 3 }] },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: 'rgba(255, 255, 255, 0.06)' }, ticks: { color: tC, font: { size: 9 }, maxTicksLimit: 7 } }, y: { grid: { color: 'rgba(255, 255, 255, 0.06)' }, ticks: { color: tC, font: { size: 9 } } } } }
-  });
+    charts.price = new Chart(ctxPrice, {
+      type: 'line',
+      data: { 
+        labels: shortInlineLabels.length ? shortInlineLabels : ["-"], 
+        datasets: [{ data: sf.length ? sf.map(f => (f.total / f.liters).toFixed(2)) : [0], borderColor: '#38bdf8', backgroundColor: gradPrice, fill: true, tension: 0.3, pointRadius: 3 }] 
+      },
+      options: { 
+        responsive: true, 
+        maintainAspectRatio: false, 
+        plugins: { legend: { display: false } }, 
+        scales: { 
+          x: { grid: { color: 'rgba(255, 255, 255, 0.06)' }, ticks: { color: tC, font: { size: 9 }, maxTicksLimit: 7 } }, 
+          y: { grid: { color: 'rgba(255, 255, 255, 0.06)' }, ticks: { color: tC, font: { size: 9 } } } 
+        } 
+      }
+    });
+  }
 }
 
 function toggleFuelChartMode(mode) {
   fuelChartMode = mode;
   document.getElementById("chartModeBtnTl").className = mode === 'tl' ? "text-[9px] font-bold px-2.5 py-1 rounded-md bg-amber-600 text-white shadow" : "text-[9px] font-bold px-2.5 py-1 rounded-md custom-card custom-muted";
   document.getElementById("chartModeBtnLit").className = mode === 'lit' ? "text-[9px] font-bold px-2.5 py-1 rounded-md bg-amber-600 text-white shadow" : "text-[9px] font-bold px-2.5 py-1 rounded-md custom-card custom-muted";
-  const ff = fuels.filter(f => selectedYear === "all" || (f.date && f.date.startsWith(selectedYear)));
+  const activeY = typeof selectedYear !== 'undefined' ? selectedYear : "all";
+  const ff = fuels.filter(f => activeY === "all" || (f.date && f.date.startsWith(activeY)));
   renderCharts(calculateFuelMetrics(ff));
 }
 
 function openLandscapeChart(type) {
-  const fF = fuels.filter(f => selectedYear === "all" || (f.date && f.date.startsWith(selectedYear)));
+  const activeY = typeof selectedYear !== 'undefined' ? selectedYear : "all";
+  const fF = fuels.filter(f => activeY === "all" || (f.date && f.date.startsWith(activeY)));
   const cF = calculateFuelMetrics(fF);
   const m = processMonthlyData(cF);
   const ctx = document.getElementById("landscapeCanvas").getContext("2d");
-  const gC = currentTheme === 'light' ? '#cbd5e1' : '#1e2c4f';
-  const tC = currentTheme === 'light' ? '#475569' : '#94a3b8';
+  const gC = getThemeGridColor();
+  const tC = getThemeTextColor();
 
   document.getElementById("btnReturnToMonthlyKm").classList.add("hidden");
   if (charts.landscape) { charts.landscape.destroy(); charts.landscape = null; }
@@ -176,16 +235,17 @@ function renderLandscapeMonthlyKm() {
   document.getElementById("landscapeChartTitle").innerText = "Aylık Yol Analizi (Tam Ekran)";
   document.getElementById("landscapeChartSubText").innerText = "Sütuna tıklayarak o ayın gün analizini açın";
 
-  const fF = fuels.filter(f => selectedYear === "all" || (f.date && f.date.startsWith(selectedYear)));
+  const activeY = typeof selectedYear !== 'undefined' ? selectedYear : "all";
+  const fF = fuels.filter(f => activeY === "all" || (f.date && f.date.startsWith(activeY)));
   const m = processMonthlyData(calculateFuelMetrics(fF));
   const ctx = document.getElementById("landscapeCanvas").getContext("2d");
-  const gC = currentTheme === 'light' ? '#cbd5e1' : '#1e2c4f';
-  const tC = currentTheme === 'light' ? '#475569' : '#94a3b8';
+  const gC = getThemeGridColor();
+  const tC = getThemeTextColor();
 
   if (charts.landscape) { charts.landscape.destroy(); charts.landscape = null; }
   charts.landscape = new Chart(ctx, {
     type: 'bar',
-    data: { labels: m.labels.length ? m.labels : ["-"], datasets: [{ label: 'Yol (km)', data: m.kmData.length ? m.kmData : [0], backgroundColor: '#3b82f6', borderRadius: 8 }] },
+    data: { labels: m.labels.length ? m.labels.map(l => l + ". Ay") : ["-"], datasets: [{ label: 'Yol (km)', data: m.kmData.length ? m.kmData : [0], backgroundColor: '#3b82f6', borderRadius: 8 }] },
     options: { 
       responsive: true, 
       maintainAspectRatio: false,
@@ -265,8 +325,8 @@ function renderLandscapeDailyKm(monthKey) {
   });
 
   const ctx = document.getElementById("landscapeCanvas").getContext("2d");
-  const gC = currentTheme === 'light' ? '#cbd5e1' : '#1e2c4f'; 
-  const tC = currentTheme === 'light' ? '#475569' : '#94a3b8';
+  const gC = getThemeGridColor();
+  const tC = getThemeTextColor();
 
   if (charts.landscape) { charts.landscape.destroy(); charts.landscape = null; }
   charts.landscape = new Chart(ctx, {
