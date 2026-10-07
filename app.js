@@ -388,32 +388,59 @@ function exportCSV() {
 async function importJSON(e) {
   const file = e.target.files[0];
   if (!file) return;
+
   const reader = new FileReader();
   reader.onload = async (ev) => {
     try {
       const p = JSON.parse(ev.target.result);
-      fuels = p.fuels || [];
-      odoLogs = p.odoLogs || [];
-      expenses = p.expenses || [];
+
+      // 1. Temel Listeleri Güvenle Çek
+      fuels = Array.isArray(p.fuels) ? p.fuels : [];
+      odoLogs = Array.isArray(p.odoLogs) ? p.odoLogs : [];
+      expenses = Array.isArray(p.expenses) ? p.expenses : [];
       tireData = p.tires || defaultTireData;
       carProfile = p.profile || defaultProfile;
       activeRoute = p.activeRoute || null;
-      customPaymentMethods = p.paymentMethods || defaultPaymentMethods;
+      customPaymentMethods = Array.isArray(p.paymentMethods) ? p.paymentMethods : defaultPaymentMethods;
       cardRewards = p.cardRewards || {};
 
-      if (p.documents) {
+      // 2. Eğer yeni formatta harici documents haritası varsa yükle
+      if (p.documents && typeof p.documents === 'object') {
         for (let [dId, dUri] of Object.entries(p.documents)) {
-          await saveDocToDB(dId, dUri);
+          if (dUri) await saveDocToDB(dId, dUri);
         }
       }
 
+      // 3. Eski formattaki gömülü fişleri (docData) IndexedDB'ye aktar
+      for (let f of fuels) {
+        if (f.docData && !f.docId) {
+          const nid = "doc_" + Date.now() + "_" + Math.random().toString(36).substring(2, 7);
+          await saveDocToDB(nid, f.docData);
+          f.docId = nid;
+          delete f.docData;
+        }
+      }
+
+      // 4. Eski formattaki gömülü faturaları/poliçeleri (docData) IndexedDB'ye aktar
+      for (let exp of expenses) {
+        if (exp.docData && !exp.docId) {
+          const nid = "doc_" + Date.now() + "_" + Math.random().toString(36).substring(2, 7);
+          await saveDocToDB(nid, exp.docData);
+          exp.docId = nid;
+          delete exp.docData;
+        }
+      }
+
+      // 5. Kalıcı Hafızaya Yaz ve Ekranı Yenile
       persistAllData();
       persistPaymentMethods();
       populateYearSelector();
+      if (typeof renderTiresTab === 'function') renderTiresTab();
       renderAll();
+
       alert("✓ Yedek başarıyla Carveri'ye aktarıldı!");
-    } catch(err) {
-      alert("Geçersiz veya bozuk JSON dosyası!");
+    } catch (err) {
+      alert("Geçersiz veya bozuk JSON dosyası: " + err.message);
     }
   };
   reader.readAsText(file);
