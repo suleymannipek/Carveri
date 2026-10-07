@@ -2189,6 +2189,15 @@
     function closeLandscapeChart() { if (charts.landscape) { charts.landscape.destroy(); charts.landscape = null; } closeModal("landscapeChartModal"); }
 
     // --- RENDER ALL & INIT ---
+    function persistAllData() {
+  localStorage.setItem(STORAGE_PREFIX + "fuels", JSON.stringify(window.fuels || []));
+  localStorage.setItem(STORAGE_PREFIX + "odologs", JSON.stringify(window.odoLogs || []));
+  localStorage.setItem(STORAGE_PREFIX + "expenses", JSON.stringify(window.expenses || []));
+  localStorage.setItem(STORAGE_PREFIX + "tires", JSON.stringify(window.tireData || window.defaultTireData));
+  localStorage.setItem(STORAGE_PREFIX + "profile", JSON.stringify(typeof carProfile !== 'undefined' ? carProfile : defaultProfile));
+  localStorage.setItem(STORAGE_PREFIX + "active_route", JSON.stringify(window.activeRoute || null));
+}
+
     function renderAll() {
       applyCarProfile(); populatePaymentSelects();
       const ff = window.fuels.filter(f => selectedYear === "all" || (f.date && f.date.startsWith(selectedYear)));
