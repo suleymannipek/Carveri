@@ -2,12 +2,10 @@
 // FUEL.JS - YAKIT, KİLOMETRE, MENZİL VE ROTA MOTORU
 // -------------------------------------------------------------
 
-// Global değişkenleri güvenli şekilde window nesnesine bağla (Initialization hatasını önler)
 window.fuels = (typeof getPersistedData === 'function') ? getPersistedData("fuels", ["ototakip_fuels", "oto_fuels_v8"], []) : [];
 window.odoLogs = (typeof getPersistedData === 'function') ? getPersistedData("odologs", ["ototakip_odologs", "oto_odologs_v8"], []) : [];
 window.activeRoute = (typeof getPersistedData === 'function') ? getPersistedData("active_route", [], null) : null;
 
-// Kısa yollar (Kod içinde yerel değişken adlarıyla uyumlu çalışması için)
 let fuels = window.fuels;
 let odoLogs = window.odoLogs;
 let activeRoute = window.activeRoute;
