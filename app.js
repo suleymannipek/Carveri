@@ -225,13 +225,12 @@ if (window.visualViewport) {
 
 function getLatestVehicleKm() {
   let maxKm = 0;
-  if (typeof fuels !== 'undefined') fuels.forEach(f => { if (f.km > maxKm) maxKm = f.km; });
-  if (typeof odoLogs !== 'undefined') odoLogs.forEach(o => { if (o.km > maxKm) maxKm = o.km; });
+  if (window.fuels) window.fuels.forEach(f => { if (f.km > maxKm) maxKm = f.km; });
+  if (window.odoLogs) window.odoLogs.forEach(o => { if (o.km > maxKm) maxKm = o.km; });
   if (typeof expenses !== 'undefined') expenses.forEach(e => { if (e.maintenanceKm && e.maintenanceKm > maxKm) maxKm = e.maintenanceKm; });
   return maxKm;
 }
 
-// DİNAMİK YIL SEÇİCİ (2025 GİBİ VERİSİ OLMAYAN BOŞ YILLAR TEMİZLENDİ)
 const currentSystemYear = new Date().getFullYear().toString();
 let selectedYear = localStorage.getItem(STORAGE_PREFIX + "selected_year") || currentSystemYear;
 
@@ -239,11 +238,11 @@ function populateYearSelector() {
   const yearSelect = document.getElementById("globalYearSelect");
   const yearsSet = new Set();
 
-  if (typeof fuels !== 'undefined') {
-    fuels.forEach(f => { if (f.date && f.date.length >= 4) yearsSet.add(f.date.substring(0, 4)); });
+  if (window.fuels) {
+    window.fuels.forEach(f => { if (f.date && f.date.length >= 4) yearsSet.add(f.date.substring(0, 4)); });
   }
-  if (typeof odoLogs !== 'undefined') {
-    odoLogs.forEach(o => { if (o.date && o.date.length >= 4) yearsSet.add(o.date.substring(0, 4)); });
+  if (window.odoLogs) {
+    window.odoLogs.forEach(o => { if (o.date && o.date.length >= 4) yearsSet.add(o.date.substring(0, 4)); });
   }
   if (typeof expenses !== 'undefined') {
     expenses.forEach(e => { if (e.date && e.date.length >= 4) yearsSet.add(e.date.substring(0, 4)); });
@@ -320,13 +319,12 @@ async function exportJSON() {
 
     const allDocs = await getAllDocsFromDB();
     
-    // Verileri global değişkenlerden veya doğrudan LocalStorage'dan güvenle topla
-    const safeFuels = (typeof fuels !== 'undefined' && Array.isArray(fuels)) ? fuels : getPersistedData("fuels", [], []);
-    const safeOdoLogs = (typeof odoLogs !== 'undefined' && Array.isArray(odoLogs)) ? odoLogs : getPersistedData("odologs", [], []);
+    const safeFuels = (window.fuels && Array.isArray(window.fuels)) ? window.fuels : getPersistedData("fuels", [], []);
+    const safeOdoLogs = (window.odoLogs && Array.isArray(window.odoLogs)) ? window.odoLogs : getPersistedData("odologs", [], []);
     const safeExpenses = (typeof expenses !== 'undefined' && Array.isArray(expenses)) ? expenses : getPersistedData("expenses", [], []);
     const safeTires = (typeof tireData !== 'undefined') ? tireData : getPersistedData("tires", [], defaultTireData);
     const safeProfile = (typeof carProfile !== 'undefined') ? carProfile : getPersistedData("profile", [], defaultProfile);
-    const safeRoute = (typeof activeRoute !== 'undefined') ? activeRoute : getPersistedData("active_route", [], null);
+    const safeRoute = (window.activeRoute !== 'undefined') ? window.activeRoute : getPersistedData("active_route", [], null);
     const safePaymentMethods = (typeof customPaymentMethods !== 'undefined') ? customPaymentMethods : getPersistedData("payment_methods", [], ["Nakit"]);
     const safeCardRewards = (typeof cardRewards !== 'undefined') ? cardRewards : getPersistedData("card_rewards", [], {});
 
@@ -361,7 +359,7 @@ async function exportJSON() {
 
 function exportCSV() {
   try {
-    const safeFuels = (typeof fuels !== 'undefined' && Array.isArray(fuels)) ? fuels : getPersistedData("fuels", [], []);
+    const safeFuels = (window.fuels && Array.isArray(window.fuels)) ? window.fuels : getPersistedData("fuels", [], []);
     let csv = "Tarih,Km,Tur,Istasyon,Sube,Litre,ToplamTL,BirimFiyat,DolumSeviyesi,Odeme\n";
     
     safeFuels.forEach(f => {
@@ -409,7 +407,6 @@ async function importJSON(e) {
         throw new Error("JSON formatı hatalı: " + jsonErr.message);
       }
 
-      // Global window nesnesi üzerinden güvenle ata (Initialization hatasını önler)
       window.fuels = Array.isArray(p.fuels) ? p.fuels : [];
       window.odoLogs = Array.isArray(p.odoLogs) ? p.odoLogs : [];
       window.expenses = Array.isArray(p.expenses) ? p.expenses : [];
@@ -424,14 +421,12 @@ async function importJSON(e) {
       window.customPaymentMethods = Array.isArray(p.paymentMethods) ? p.paymentMethods : safeDefaultPayments;
       window.cardRewards = (p.cardRewards && typeof p.cardRewards === 'object') ? p.cardRewards : {};
 
-      // Yeni formatta documents varsa IndexedDB'ye yaz
       if (p.documents && typeof p.documents === 'object') {
         for (let [dId, dUri] of Object.entries(p.documents)) {
           if (dUri && typeof saveDocToDB === 'function') await saveDocToDB(dId, dUri);
         }
       }
 
-      // Eski formattaki gömülü yakıt fişlerini IndexedDB'ye aktar
       for (let f of window.fuels) {
         if (f.docData && !f.docId) {
           const nid = "doc_fuel_" + f.id + "_" + Math.random().toString(36).substring(2, 6);
@@ -441,7 +436,6 @@ async function importJSON(e) {
         }
       }
 
-      // Eski formattaki gömülü faturaları IndexedDB'ye aktar
       for (let exp of window.expenses) {
         if (exp.docData && !exp.docId) {
           const nid = "doc_exp_" + exp.id + "_" + Math.random().toString(36).substring(2, 6);
@@ -451,7 +445,6 @@ async function importJSON(e) {
         }
       }
 
-      // Kaydet ve Ekranı Güncelle
       if (typeof persistAllData === 'function') persistAllData();
       if (typeof persistPaymentMethods === 'function') persistPaymentMethods();
       if (typeof populateYearSelector === 'function') populateYearSelector();
@@ -475,7 +468,7 @@ async function importJSON(e) {
 function wipeAllDataSecurely() {
   if ((document.getElementById("wipeConfirmInput").value || "").trim().toUpperCase() !== "EVET") return alert("Silmek için EVET yazın.");
   if (confirm("Tüm veriler kalıcı olarak silinecek. Emin misiniz?")) {
-    fuels = []; odoLogs = []; expenses = []; activeRoute = null;
+    window.fuels = []; window.odoLogs = []; expenses = []; window.activeRoute = null;
     tireData = defaultTireData;
     carProfile = defaultProfile;
     customPaymentMethods = [...defaultPaymentMethods];
@@ -489,19 +482,19 @@ function wipeAllDataSecurely() {
 }
 
 function persistAllData() {
-  localStorage.setItem(STORAGE_PREFIX + "fuels", JSON.stringify(fuels));
-  localStorage.setItem(STORAGE_PREFIX + "odologs", JSON.stringify(odoLogs));
+  localStorage.setItem(STORAGE_PREFIX + "fuels", JSON.stringify(window.fuels));
+  localStorage.setItem(STORAGE_PREFIX + "odologs", JSON.stringify(window.odoLogs));
   localStorage.setItem(STORAGE_PREFIX + "expenses", JSON.stringify(expenses));
   localStorage.setItem(STORAGE_PREFIX + "tires", JSON.stringify(tireData));
   localStorage.setItem(STORAGE_PREFIX + "profile", JSON.stringify(carProfile));
-  localStorage.setItem(STORAGE_PREFIX + "active_route", JSON.stringify(activeRoute));
+  localStorage.setItem(STORAGE_PREFIX + "active_route", JSON.stringify(window.activeRoute));
 }
 
 function renderAll() {
   applyCarProfile();
   populatePaymentSelects();
 
-  const ff = fuels.filter(f => selectedYear === "all" || (f.date && f.date.startsWith(selectedYear)));
+  const ff = window.fuels.filter(f => selectedYear === "all" || (f.date && f.date.startsWith(selectedYear)));
   const fe = expenses.filter(e => selectedYear === "all" || (e.date && e.date.startsWith(selectedYear)));
   const cf = calculateFuelMetrics(ff);
 
