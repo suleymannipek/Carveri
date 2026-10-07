@@ -392,58 +392,90 @@ async function importJSON(e) {
   const reader = new FileReader();
   reader.onload = async (ev) => {
     try {
-      const p = JSON.parse(ev.target.result);
+      let rawText = ev.target.result;
+      if (typeof rawText !== "string") {
+        throw new Error("Dosya metin formatında okunamadı.");
+      }
+
+      // Olası UTF-8 BOM veya boşluk karakterlerini temizle
+      rawText = rawText.trim();
+      if (rawText.charCodeAt(0) === 0xFEFF) {
+        rawText = rawText.slice(1);
+      }
+
+      let p;
+      try {
+        p = JSON.parse(rawText);
+      } catch (jsonErr) {
+        throw new Error("JSON formatı hatalı: " + jsonErr.message);
+      }
 
       // 1. Temel Listeleri Güvenle Çek
       fuels = Array.isArray(p.fuels) ? p.fuels : [];
       odoLogs = Array.isArray(p.odoLogs) ? p.odoLogs : [];
       expenses = Array.isArray(p.expenses) ? p.expenses : [];
-      tireData = p.tires || defaultTireData;
-      carProfile = p.profile || defaultProfile;
-      activeRoute = p.activeRoute || null;
-      customPaymentMethods = Array.isArray(p.paymentMethods) ? p.paymentMethods : defaultPaymentMethods;
-      cardRewards = p.cardRewards || {};
+      
+      const safeDefaultTires = (typeof defaultTireData !== 'undefined') ? defaultTireData : {
+        activeSet: "summer",
+        summer: { sol_on: { status: "Sorunsuz", history: [] }, sag_on: { status: "Sorunsuz", history: [] }, sol_arka: { status: "Sorunsuz", history: [] }, sag_arka: { status: "Sorunsuz", history: [] }, mountedKm: 0, mountedDate: "" },
+        winter: { sol_on: { status: "Sorunsuz", history: [] }, sag_on: { status: "Sorunsuz", history: [] }, sol_arka: { status: "Sorunsuz", history: [] }, sag_arka: { status: "Sorunsuz", history: [] }, mountedKm: 0, mountedDate: "" }
+      };
+      const safeDefaultProfile = (typeof defaultProfile !== 'undefined') ? defaultProfile : { name: "Carveri", desc: "", fuelTank: 50, hasLpg: false, lpgTank: 40 };
+      const safeDefaultPayments = (typeof defaultPaymentMethods !== 'undefined') ? defaultPaymentMethods : ["Nakit", "Bonus", "Maximum", "World", "Axess", "Bankkart"];
 
-      // 2. Eğer yeni formatta harici documents haritası varsa yükle
+      tireData = p.tires || safeDefaultTires;
+      carProfile = p.profile || safeDefaultProfile;
+      activeRoute = p.activeRoute || null;
+      customPaymentMethods = Array.isArray(p.paymentMethods) ? p.paymentMethods : safeDefaultPayments;
+      cardRewards = (p.cardRewards && typeof p.cardRewards === 'object') ? p.cardRewards : {};
+
+      // 2. Yeni formatta documents varsa IndexedDB'ye yaz
       if (p.documents && typeof p.documents === 'object') {
         for (let [dId, dUri] of Object.entries(p.documents)) {
           if (dUri) await saveDocToDB(dId, dUri);
         }
       }
 
-      // 3. Eski formattaki gömülü fişleri (docData) IndexedDB'ye aktar
+      // 3. Eski formattaki gömülü yakıt fişlerini (docData) IndexedDB'ye aktar
       for (let f of fuels) {
         if (f.docData && !f.docId) {
-          const nid = "doc_" + Date.now() + "_" + Math.random().toString(36).substring(2, 7);
+          const nid = "doc_fuel_" + f.id + "_" + Math.random().toString(36).substring(2, 6);
           await saveDocToDB(nid, f.docData);
           f.docId = nid;
           delete f.docData;
         }
       }
 
-      // 4. Eski formattaki gömülü faturaları/poliçeleri (docData) IndexedDB'ye aktar
+      // 4. Eski formattaki gömülü fatura/kaskoları (docData) IndexedDB'ye aktar
       for (let exp of expenses) {
         if (exp.docData && !exp.docId) {
-          const nid = "doc_" + Date.now() + "_" + Math.random().toString(36).substring(2, 7);
+          const nid = "doc_exp_" + exp.id + "_" + Math.random().toString(36).substring(2, 6);
           await saveDocToDB(nid, exp.docData);
           exp.docId = nid;
           delete exp.docData;
         }
       }
 
-      // 5. Kalıcı Hafızaya Yaz ve Ekranı Yenile
+      // 5. Kaydet ve Ekranı Güncelle
       persistAllData();
       persistPaymentMethods();
-      populateYearSelector();
+      if (typeof populateYearSelector === 'function') populateYearSelector();
       if (typeof renderTiresTab === 'function') renderTiresTab();
-      renderAll();
+      if (typeof renderAll === 'function') renderAll();
 
-      alert("✓ Yedek başarıyla Carveri'ye aktarıldı!");
+      alert("✓ Eski yedek başarıyla Carveri'ye aktarıldı!");
+      // Dosya seçici kutusunu sıfırla ki tekrar seçilebilsin
+      e.target.value = "";
     } catch (err) {
-      alert("Geçersiz veya bozuk JSON dosyası: " + err.message);
+      alert("Yükleme Hatası:\n" + err.message);
     }
   };
-  reader.readAsText(file);
+
+  reader.onerror = () => {
+    alert("Dosya okunamadı. Lütfen dosyayı tekrar seçin.");
+  };
+
+  reader.readAsText(file, "UTF-8");
 }
 
 function wipeAllDataSecurely() {
