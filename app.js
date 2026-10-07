@@ -471,7 +471,7 @@ function wipeAllDataSecurely() {
   if ((document.getElementById("wipeConfirmInput").value || "").trim().toUpperCase() !== "EVET") return alert("Silmek için EVET yazın.");
   if (confirm("Tüm veriler kalıcı olarak silinecek. Emin misiniz?")) {
     window.fuels = []; window.odoLogs = []; expenses = []; window.activeRoute = null;
-    tireData = (typeof defaultTireData !== 'undefined') ? defaultTireData : {};
+    window.tireData = (typeof window.defaultTireData !== 'undefined') ? window.defaultTireData : {};
     carProfile = defaultProfile;
     customPaymentMethods = (typeof defaultPaymentMethods !== 'undefined') ? [...defaultPaymentMethods] : ["Nakit"];
     cardRewards = {};
@@ -487,7 +487,7 @@ function persistAllData() {
   localStorage.setItem(STORAGE_PREFIX + "fuels", JSON.stringify(window.fuels));
   localStorage.setItem(STORAGE_PREFIX + "odologs", JSON.stringify(window.odoLogs));
   localStorage.setItem(STORAGE_PREFIX + "expenses", JSON.stringify(expenses));
-  localStorage.setItem(STORAGE_PREFIX + "tires", JSON.stringify(tireData));
+  localStorage.setItem(STORAGE_PREFIX + "tires", JSON.stringify(window.tireData));
   localStorage.setItem(STORAGE_PREFIX + "profile", JSON.stringify(carProfile));
   localStorage.setItem(STORAGE_PREFIX + "active_route", JSON.stringify(window.activeRoute));
 }
