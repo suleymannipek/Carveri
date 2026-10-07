@@ -311,41 +311,78 @@ function saveCarProfile() {
 }
 
 async function exportJSON() {
-  const nowStr = new Date().toLocaleString('tr-TR');
-  lastBackupTimestamp = nowStr;
-  localStorage.setItem(STORAGE_PREFIX + "last_backup", nowStr);
-  document.getElementById("lastBackupTimeBadge").innerText = `Son Yedek: ${nowStr}`;
+  try {
+    const nowStr = new Date().toLocaleString('tr-TR');
+    lastBackupTimestamp = nowStr;
+    localStorage.setItem(STORAGE_PREFIX + "last_backup", nowStr);
+    const badge = document.getElementById("lastBackupTimeBadge");
+    if (badge) badge.innerText = `Son Yedek: ${nowStr}`;
 
-  const allDocs = await getAllDocsFromDB();
-  const data = {
-    fuels,
-    odoLogs,
-    expenses,
-    tires: tireData,
-    profile: carProfile,
-    activeRoute,
-    paymentMethods: customPaymentMethods,
-    cardRewards,
-    documents: allDocs
-  };
+    const allDocs = await getAllDocsFromDB();
+    
+    // Verileri global değişkenlerden veya doğrudan LocalStorage'dan güvenle topla
+    const safeFuels = (typeof fuels !== 'undefined' && Array.isArray(fuels)) ? fuels : getPersistedData("fuels", [], []);
+    const safeOdoLogs = (typeof odoLogs !== 'undefined' && Array.isArray(odoLogs)) ? odoLogs : getPersistedData("odologs", [], []);
+    const safeExpenses = (typeof expenses !== 'undefined' && Array.isArray(expenses)) ? expenses : getPersistedData("expenses", [], []);
+    const safeTires = (typeof tireData !== 'undefined') ? tireData : getPersistedData("tires", [], defaultTireData);
+    const safeProfile = (typeof carProfile !== 'undefined') ? carProfile : getPersistedData("profile", [], defaultProfile);
+    const safeRoute = (typeof activeRoute !== 'undefined') ? activeRoute : getPersistedData("active_route", [], null);
+    const safePaymentMethods = (typeof customPaymentMethods !== 'undefined') ? customPaymentMethods : getPersistedData("payment_methods", [], ["Nakit"]);
+    const safeCardRewards = (typeof cardRewards !== 'undefined') ? cardRewards : getPersistedData("card_rewards", [], {});
 
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = `Carveri_Yedek_${new Date().toISOString().split("T")[0]}.json`;
-  a.click();
+    const backupData = {
+      fuels: safeFuels,
+      odoLogs: safeOdoLogs,
+      expenses: safeExpenses,
+      tires: safeTires,
+      profile: safeProfile,
+      activeRoute: safeRoute,
+      paymentMethods: safePaymentMethods,
+      cardRewards: safeCardRewards,
+      documents: allDocs
+    };
+
+    const jsonString = JSON.stringify(backupData, null, 2);
+    const blob = new Blob([jsonString], { type: "application/json;charset=utf-8;" });
+    const downloadUrl = URL.createObjectURL(blob);
+    
+    const a = document.createElement("a");
+    a.href = downloadUrl;
+    a.download = `Carveri_Yedek_${new Date().toISOString().split("T")[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    
+    setTimeout(() => URL.revokeObjectURL(downloadUrl), 2000);
+  } catch (err) {
+    alert("Yedekleme sırasında bir hata oluştu: " + err.message);
+  }
 }
 
 function exportCSV() {
-  let csv = "Tarih,Km,Tur,Istasyon,Sube,Litre,ToplamTL,BirimFiyat,DolumSeviyesi,Odeme\n";
-  fuels.forEach(f => {
-    csv += `${f.date},${f.km},${f.fuelType || 'Benzin/Dizel'},${f.station},"${f.branch || ''}",${f.liters},${f.total},${(f.total/f.liters).toFixed(2)},${f.isFull ? 'Tam' : 'Kısmi'},${f.paymentMethod || 'Nakit'}\n`;
-  });
-  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = `Carveri_Yakit_${new Date().toISOString().split("T")[0]}.csv`;
-  a.click();
+  try {
+    const safeFuels = (typeof fuels !== 'undefined' && Array.isArray(fuels)) ? fuels : getPersistedData("fuels", [], []);
+    let csv = "Tarih,Km,Tur,Istasyon,Sube,Litre,ToplamTL,BirimFiyat,DolumSeviyesi,Odeme\n";
+    
+    safeFuels.forEach(f => {
+      const unitP = (f.liters > 0) ? (f.total / f.liters).toFixed(2) : "0.00";
+      csv += `${f.date || ''},${f.km || ''},${f.fuelType || 'Benzin/Dizel'},${f.station || ''},"${f.branch || ''}",${f.liters || 0},${f.total || 0},${unitP},${f.isFull ? 'Tam' : 'Kısmi'},${f.paymentMethod || 'Nakit'}\n`;
+    });
+
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const downloadUrl = URL.createObjectURL(blob);
+    
+    const a = document.createElement("a");
+    a.href = downloadUrl;
+    a.download = `Carveri_Yakit_${new Date().toISOString().split("T")[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    
+    setTimeout(() => URL.revokeObjectURL(downloadUrl), 2000);
+  } catch (err) {
+    alert("CSV dışa aktarma hatası: " + err.message);
+  }
 }
 
 async function importJSON(e) {
