@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="tr" data-theme="midnight">
+<html lang="tr">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
@@ -12,6 +12,16 @@
 
   <link rel="manifest" href="./manifest.json" />
   <script>
+    // Flaş patlamasını (ekranın siyah/beyaz sıçramasını) engelleyen erken tema çalıştırıcı
+    (function() {
+      const stored = localStorage.getItem("ototakip_promax_theme_pref") || "auto";
+      let active = stored;
+      if (stored === "auto") {
+        active = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? "midnight" : "light";
+      }
+      document.documentElement.setAttribute("data-theme", active);
+    })();
+
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js').catch(() => {});
@@ -45,7 +55,6 @@
       --warn-bg: rgba(245, 158, 11, 0.15);
       --warn-border: rgba(245, 158, 11, 0.35);
 
-      /* Temaya duyarlı rozetler */
       --badge-green-bg: rgba(6, 78, 59, 0.4);
       --badge-green-text: #34d399;
       --badge-green-border: rgba(16, 185, 129, 0.3);
@@ -84,7 +93,6 @@
       --warn-bg: #ffedd5;
       --warn-border: #fed7aa;
 
-      /* Gündüz teması belirgin rozetler */
       --badge-green-bg: #dcfce7;
       --badge-green-text: #166534;
       --badge-green-border: #86efac;
@@ -185,7 +193,6 @@
     }
     .custom-muted { color: var(--text-muted) !important; }
     
-    /* Dinamik rozet sınıfları */
     .theme-badge-green { background-color: var(--badge-green-bg); color: var(--badge-green-text); border: 1px solid var(--badge-green-border); }
     .theme-badge-blue { background-color: var(--badge-blue-bg); color: var(--badge-blue-text); border: 1px solid var(--badge-blue-border); }
     .theme-badge-cyan { background-color: var(--badge-cyan-bg); color: var(--badge-cyan-text); border: 1px solid var(--badge-cyan-border); }
@@ -231,7 +238,7 @@
       <select id="globalYearSelect" onchange="changeActiveYear(this.value)" class="text-[11px] font-extrabold py-1 px-2 rounded-xl custom-card border outline-none text-cyan-500 shadow-inner">
       </select>
       <button onclick="cycleTheme()" id="btnThemeToggle" title="Tema Değiştir" class="h-8 w-8 rounded-xl custom-card flex items-center justify-center text-xs shadow-sm hover:scale-105 transition-transform">
-        <span id="themeIcon">🔵</span>
+        <span id="themeIcon">⚙️</span>
       </button>
       <button onclick="toggleFullScreen()" title="Tam Ekran" class="w-8 h-8 rounded-xl custom-card flex items-center justify-center text-[11px] hover:scale-105 transition-transform">⛶</button>
     </div>
@@ -403,7 +410,6 @@
           <span id="fuelRangeRemaining" class="text-[10px] font-extrabold px-2.5 py-1 rounded-lg theme-badge-blue">--</span>
         </div>
 
-        <!-- 2 SÜTUNLU FERAH ALT KUTU -->
         <div class="pt-2 border-t border-slate-700/40 grid grid-cols-2 gap-2 text-[10px]">
           <div class="p-2 rounded-xl theme-sub-box">
             <span class="custom-muted block text-[9px] font-bold">Depodaki Kalan Yakıt</span>
@@ -643,7 +649,7 @@
     </div>
   </main>
 
-  <!-- SAYAÇ / ODO MODALI (DİŞ KALDIRILDI, YÜZDE & LİTRE SENKRON) -->
+  <!-- SAYAÇ / ODO MODALI -->
   <div id="odoModal" class="fixed inset-0 bg-black/80 modal-backdrop flex items-center justify-center p-3 hidden backdrop-blur-sm">
     <div class="custom-card w-full max-w-md rounded-2xl p-4 border shadow-2xl max-h-[88vh] flex flex-col">
       <div class="flex justify-between items-center mb-3 shrink-0 border-b border-slate-700/40 pb-2">
@@ -678,7 +684,6 @@
           <span class="text-[9px] custom-muted block mt-0.5">Kalan menzil tahmininde doğrudan bu güncel tüketim esas alınacaktır.</span>
         </div>
 
-        <!-- DİŞ KALDIRILDI: YÜZDE (%) VE LİTRE (L) ÇİFT YÖNLÜ SENKRON -->
         <div class="p-3 rounded-xl theme-sub-box space-y-2">
           <label class="custom-muted text-[10px] font-bold block">Göstergedeki Kalan Yakıt (Yüzde veya Litre)</label>
           <div class="grid grid-cols-2 gap-2">
@@ -724,7 +729,7 @@
     </div>
   </div>
 
-  <!-- YAKIT MODALI (YARIM/ÇEYREK KALKTI, TEK DOKUNUŞ TAM DEPO) -->
+  <!-- YAKIT MODALI -->
   <div id="fuelModal" class="fixed inset-0 bg-black/80 modal-backdrop flex items-center justify-center p-3 hidden backdrop-blur-sm">
     <div class="custom-card w-full max-w-md rounded-2xl p-4 border max-h-[88vh] flex flex-col shadow-2xl">
       <div class="flex justify-between items-center mb-3 shrink-0 border-b border-slate-700/40 pb-2">
@@ -773,7 +778,6 @@
           </div>
         </div>
 
-        <!-- SADELEŞTİRİLMİŞ TAM DEPO SEÇİMİ -->
         <div class="p-3 rounded-xl theme-sub-box border flex items-center justify-between">
           <div>
             <label for="fIsFullCheckbox" class="font-black text-xs block cursor-pointer">⛽ Tam Depo (Depo Fullendi)</label>
@@ -1270,7 +1274,6 @@
       return (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? "midnight" : "light";
     }
 
-    // Başlangıçta kayıtlı ayar yoksa varsayılan 'auto' (sistemi takip et) olsun
     let userThemePref = localStorage.getItem(STORAGE_PREFIX + "theme_pref") || "auto";
 
     function applyCurrentTheme() {
@@ -1280,7 +1283,7 @@
       const mCol = document.getElementById("metaThemeColor");
       const tIco = document.getElementById("themeIcon");
       if (mCol && themeMeta[activeTheme]) mCol.setAttribute("content", themeMeta[activeTheme].color);
-      if (tIco) tIco.innerText = themeMeta[userThemePref].icon;
+      if (tIco && themeMeta[userThemePref]) tIco.innerText = themeMeta[userThemePref].icon;
 
       if (typeof renderAll === "function") renderAll();
     }
@@ -1301,7 +1304,6 @@
       } 
     }
 
-    // Telefonun modu canlı olarak değiştiğinde anında uyarla
     if (window.matchMedia) {
       window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
         if (userThemePref === "auto") {
@@ -1309,7 +1311,10 @@
         }
       });
     }
-    
+
+    const fontSizes = { small: { size: '14px', label: '%100' }, medium: { size: '16px', label: '%115' }, large: { size: '18px', label: '%130' } };
+    let currentFontSizeKey = localStorage.getItem(STORAGE_PREFIX + "font_size") || "small";
+
     function applyFontSize(key) {
       if (!fontSizes[key]) key = "small";
       currentFontSizeKey = key;
@@ -1478,7 +1483,6 @@
       }
     }
 
-    // YÜZDE & LİTRE SENKRONİZASYON MOTORU
     function syncLitersFromPercent(pctVal) {
       const litInput = document.getElementById("mOdoFuelLiters");
       const tankCapacity = carProfile.fuelTank || 50;
@@ -1654,7 +1658,6 @@
       }
     }
 
-    // SAĞLIK VE EKSPERTİZ RAPORU MOTORU (GÜNDÜZ KONTRASTI DÜZELTİLDİ)
     let activeReportMode = "health";
 
     function openReportModal() {
@@ -2308,7 +2311,7 @@
       if (charts.landscape) { charts.landscape.destroy(); charts.landscape = null; }
       charts.landscape = new Chart(ctx, {
         type: 'bar',
-        data: { labels: m.labels.length ? m.labels.map(l => l + ". Ay") : ["-"], datasets: [{ label: 'Yol (km)', data: m.kmData.length ? m.kmData : [0], backgroundColor: '#3b82f6', borderRadius: 8 }] },
+        data: { labels: m.labels.length ? m.labels : ["-"], datasets: [{ label: 'Yol (km)', data: m.kmData.length ? m.kmData : [0], backgroundColor: '#3b82f6', borderRadius: 8 }] },
         options: { 
           responsive: true, 
           maintainAspectRatio: false,
