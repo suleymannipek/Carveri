@@ -6,12 +6,16 @@ const defaultPaymentMethods = ["Nakit", "Bonus", "Maximum", "World", "Axess", "B
 let customPaymentMethods = getPersistedData("payment_methods", ["ototakip_payment_methods"], defaultPaymentMethods);
 let cardRewards = getPersistedData("card_rewards", ["ototakip_card_rewards"], {});
 
-let defaultTireData = {
+window.defaultTireData = {
   activeSet: "summer",
   summer: { sol_on: { status: "Sorunsuz", history: [] }, sag_on: { status: "Sorunsuz", history: [] }, sol_arka: { status: "Sorunsuz", history: [] }, sag_arka: { status: "Sorunsuz", history: [] }, mountedKm: 0, mountedDate: "" },
   winter: { sol_on: { status: "Sorunsuz", history: [] }, sag_on: { status: "Sorunsuz", history: [] }, sol_arka: { status: "Sorunsuz", history: [] }, sag_arka: { status: "Sorunsuz", history: [] }, mountedKm: 0, mountedDate: "" }
 };
-let tireData = getPersistedData("tires", ["ototakip_tires", "oto_tires_v8"], defaultTireData);
+
+window.tireData = getPersistedData("tires", ["ototakip_tires", "oto_tires_v8"], window.defaultTireData);
+
+let defaultTireData = window.defaultTireData;
+let tireData = window.tireData;
 
 const EXPENSE_TYPES = {
   FIXED: ["Kasko", "Trafik Sigortası", "MTV (1. Taksit - Ocak)", "MTV (2. Taksit - Temmuz)", "TÜVTÜRK Muayene"],
