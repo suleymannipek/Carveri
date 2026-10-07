@@ -1564,6 +1564,154 @@
       }
     }
 
+
+    // -------------------------------------------------------------
+    // ARAÇ SAĞLIK VE SATIŞ & EKSPERTİZ RAPORU MOTORU
+    // -------------------------------------------------------------
+    let activeReportMode = "health";
+
+    function openReportModal() {
+      switchReportMode('health');
+      openModalDirectly("expertReportModal");
+    }
+
+    function switchReportMode(mode) {
+      activeReportMode = mode;
+      const bH = document.getElementById("btnRepHealthMode");
+      const bR = document.getElementById("btnRepResaleMode");
+      const dynamicContainer = document.getElementById("reportDynamicContent");
+
+      const liveKm = getLatestVehicleKm();
+      const now = new Date();
+      
+      const expDateEl = document.getElementById("expReportDate");
+      if (expDateEl) expDateEl.innerText = `Rapor Tarihi: ${now.toLocaleDateString('tr-TR')}`;
+
+      document.getElementById("repCarKm").innerText = liveKm > 0 ? `${liveKm.toLocaleString('tr-TR')} KM` : "0 KM";
+      document.getElementById("repCarName").innerText = carProfile.name || "Carveri";
+      document.getElementById("repCarDesc").innerText = `${carProfile.desc || 'Model'}`;
+
+      if (mode === 'health') {
+        bH.className = "flex-1 py-2 text-[11px] font-black rounded-lg bg-blue-600 text-white shadow";
+        bR.className = "flex-1 py-2 text-[11px] font-black rounded-lg custom-muted hover:text-white";
+
+        const maintLogs = expenses.filter(e => e.type === "Periyodik Bakım").sort((a,b) => new Date(b.date) - new Date(a.date));
+        let lastMDate = "Kayıt Yok", lastMKm = "--", kmLeftStr = "20.000 km", daysLeftStr = "1 Yıl";
+        if (maintLogs.length > 0) {
+          const lastM = maintLogs[0];
+          lastMDate = formatDateTimeLabel(lastM.date);
+          lastMKm = lastM.maintenanceKm ? `${lastM.maintenanceKm.toLocaleString('tr-TR')} KM` : "Belirtilmedi";
+          let kmLeft = lastM.maintenanceKm ? Math.max(0, (lastM.maintenanceKm + 20000) - liveKm) : null;
+          kmLeftStr = kmLeft !== null ? `${kmLeft.toLocaleString('tr-TR')} km kaldı` : "20.000 KM";
+          const tDate = new Date(lastM.date); tDate.setDate(tDate.getDate() + 365);
+          const days = Math.ceil((tDate - now) / 86400000);
+          daysLeftStr = days > 0 ? `${days} gün kaldı` : "Vadesi Doldu!";
+        }
+
+        const activeSet = tireData.activeSet || "summer";
+        const setObj = tireData[activeSet];
+        let tDist = (liveKm >= (setObj.mountedKm || 0)) ? liveKm - (setObj.mountedKm || 0) : 0;
+
+        const kaskoLast = expenses.filter(e => e.type === "Kasko").sort((a,b) => new Date(b.date) - new Date(a.date))[0];
+        const trafikLast = expenses.filter(e => e.type === "Trafik Sigortası").sort((a,b) => new Date(b.date) - new Date(a.date))[0];
+        const muayeneLast = expenses.filter(e => e.type === "TÜVTÜRK Muayene").sort((a,b) => new Date(b.date) - new Date(a.date))[0];
+
+        dynamicContainer.innerHTML = `
+          <div class="p-3.5 rounded-xl theme-sub-box space-y-2">
+            <h4 class="text-[11px] font-black text-amber-500 flex items-center gap-1.5"><span>🛠️</span> Periyodik Bakım Vadeleri (Tam Takip)</h4>
+            <div class="grid grid-cols-2 gap-2.5 text-[10px]">
+              <div><span class="custom-muted block text-[9px] font-bold">Son Bakım Tarihi</span><b class="font-bold">${lastMDate}</b></div>
+              <div><span class="custom-muted block text-[9px] font-bold">Son Bakım KM</span><b class="font-bold">${lastMKm}</b></div>
+              <div><span class="custom-muted block text-[9px] font-bold">Kalan KM Ömrü</span><b class="text-emerald-500 font-black">${kmLeftStr}</b></div>
+              <div><span class="custom-muted block text-[9px] font-bold">Yıllık Vade</span><b class="text-emerald-500 font-black">${daysLeftStr}</b></div>
+            </div>
+          </div>
+
+          <div class="p-3.5 rounded-xl theme-sub-box space-y-2">
+            <h4 class="text-[11px] font-black text-blue-500 flex items-center gap-1.5"><span>🏛️</span> Yasal Zorunluluklar & Poliçeler</h4>
+            <div class="grid grid-cols-2 gap-2 text-[10px]">
+              <div class="p-2 rounded-lg theme-sub-box">
+                <span class="custom-muted block text-[9px] font-bold">Kasko Durumu</span>
+                <b class="font-bold text-slate-200">${kaskoLast ? formatDateTimeLabel(kaskoLast.date) : 'Poliçe Eklenmedi'}</b>
+              </div>
+              <div class="p-2 rounded-lg theme-sub-box">
+                <span class="custom-muted block text-[9px] font-bold">Trafik Sigortası</span>
+                <b class="font-bold text-slate-200">${trafikLast ? formatDateTimeLabel(trafikLast.date) : 'Poliçe Eklenmedi'}</b>
+              </div>
+              <div class="p-2 rounded-lg theme-sub-box col-span-2">
+                <span class="custom-muted block text-[9px] font-bold">TÜVTÜRK Muayene</span>
+                <b class="font-bold text-slate-200">${muayeneLast ? formatDateTimeLabel(muayeneLast.date) : 'Kayıt Yok'}</b>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-3.5 rounded-xl theme-sub-box space-y-2">
+            <h4 class="text-[11px] font-black text-cyan-500 flex items-center gap-1.5"><span>🛞</span> Lastik Sağlığı & Tekerlek Detayları</h4>
+            <div class="text-[10px] space-y-1 mb-2">
+              <div class="flex justify-between"><span class="custom-muted font-semibold">Takılı Set:</span><b class="font-bold">${activeSet === "summer" ? "☀️ Yazlık Set" : "❄️ Kışlık Set"}</b></div>
+              <div class="flex justify-between"><span class="custom-muted font-semibold">Sezon Yapılan Yol:</span><b class="font-bold">${tDist.toLocaleString('tr-TR')} km</b></div>
+              <div class="flex justify-between"><span class="custom-muted font-semibold">Rotasyon Durumu:</span><b class="${tDist >= 10000 ? 'text-amber-500 font-black' : 'text-emerald-500 font-bold'}">${tDist >= 10000 ? 'Rotasyon Vakti Geldi!' : 'Normal'}</b></div>
+            </div>
+            <div class="grid grid-cols-2 gap-2 text-[10px]">
+              <div class="p-1.5 rounded theme-sub-box">Sol Ön: <b>${setObj.sol_on.status}</b></div>
+              <div class="p-1.5 rounded theme-sub-box">Sağ Ön: <b>${setObj.sag_on.status}</b></div>
+              <div class="p-1.5 rounded theme-sub-box">Sol Arka: <b>${setObj.sol_arka.status}</b></div>
+              <div class="p-1.5 rounded theme-sub-box">Sağ Arka: <b>${setObj.sag_arka.status}</b></div>
+            </div>
+          </div>
+        `;
+      } else {
+        bR.className = "flex-1 py-2 text-[11px] font-black rounded-lg bg-emerald-600 text-white shadow";
+        bH.className = "flex-1 py-2 text-[11px] font-black rounded-lg custom-muted hover:text-white";
+
+        const expertRecords = expenses.filter(e => {
+          const isNotOwnerExpense = !e.type.includes("Kasko") && !e.type.includes("Sigortası") && !e.type.includes("MTV") && !e.type.includes("Lastik");
+          return e.includeInExpert !== false && isNotOwnerExpense;
+        }).sort((a,b) => new Date(b.date) - new Date(a.date));
+        
+        let serviceListHtml = "";
+        if (expertRecords.length === 0) {
+          serviceListHtml = `<div class="p-2 text-center custom-muted text-[10px] font-semibold">Kayıtlı mekanik servis/onarım bulunmuyor.</div>`;
+        } else {
+          serviceListHtml = expertRecords.map(item => {
+            const isFree = (item.amount === 0 || item.amount === "0");
+            return `
+              <div class="p-2.5 rounded-xl theme-sub-box text-[10px] space-y-1 shadow-sm">
+                <div class="flex justify-between items-start font-black">
+                  <span>${item.type}</span>
+                  <span class="${isFree ? 'text-emerald-500' : ''} font-black">${isFree ? '🛡️ Garanti Kapsamında (0 ₺)' : '₺' + parseFloat(item.amount).toLocaleString('tr-TR')}</span>
+                </div>
+                <div class="flex justify-between text-[9px] custom-muted font-semibold">
+                  <span>📅 ${formatDateTimeLabel(item.date)}</span>
+                  <span>${item.maintenanceKm ? '📍 ' + item.maintenanceKm.toLocaleString('tr-TR') + ' KM' : ''}</span>
+                </div>
+                ${item.desc ? `<div class="text-[9px] font-medium">${item.desc}</div>` : ''}
+              </div>
+            `;
+          }).join('');
+        }
+
+        let totalFuel = 0; fuels.forEach(f => totalFuel += f.total);
+        let mechMaintExp = 0;
+        expertRecords.forEach(e => mechMaintExp += e.amount);
+
+        dynamicContainer.innerHTML = `
+          <div class="p-3.5 rounded-xl theme-sub-box space-y-2">
+            <h4 class="text-[11px] font-black text-emerald-500 flex items-center gap-1.5"><span>🛡️</span> Yetkili Servis & Mekanik Onarım Geçmişi</h4>
+            <p class="text-[9px] custom-muted font-semibold">Alıcıya sunulacak şeffaf periyodik bakım ve garanti onarım dökümü:</p>
+            <div class="space-y-2 pt-1">${serviceListHtml}</div>
+          </div>
+
+          <div class="p-3.5 rounded-xl theme-sub-box space-y-2">
+            <h4 class="text-[11px] font-black text-pink-500 flex items-center gap-1.5"><span>💰</span> Bakım & Yakıt Masraf Özeti</h4>
+            <div class="grid grid-cols-2 gap-2.5 text-[10px]">
+              <div><span class="custom-muted block text-[9px] font-bold">Toplam Yakıt Tüketimi</span><b class="font-bold">₺${Math.round(totalFuel).toLocaleString('tr-TR')}</b></div>
+              <div><span class="custom-muted block text-[9px] font-bold">Mekanik Servis Gideri</span><b class="font-bold">₺${Math.round(mechMaintExp).toLocaleString('tr-TR')}</b></div>
+            </div>
+          </div>
+        `;
+      }
+    }
     function updateActiveRouteBanner() {
       const banner = document.getElementById("activeRouteBanner");
       if (!activeRoute) { banner.classList.add("hidden"); return; }
