@@ -1256,20 +1256,62 @@
       renderPaymentBreakdown();
     }
 
+    // -------------------------------------------------------------
+    // TEMALAR & SİSTEM TEMASINA GÖRE OTOMATİK ALGILAMA
+    // -------------------------------------------------------------
     const themes = ["midnight", "light", "oled"];
-    const themeMeta = { midnight: { name: "Mavi", icon: "🔵", color: "#0b1329" }, light: { name: "Gündüz", icon: "☀️", color: "#f1f5f9" }, oled: { name: "OLED", icon: "🌑", color: "#000000" } };
-    let currentTheme = localStorage.getItem(STORAGE_PREFIX + "theme") || "midnight";
+    const themeMeta = { 
+      midnight: { name: "Gece", icon: "🔵", color: "#0b1329" }, 
+      light: { name: "Gündüz", icon: "☀️", color: "#f1f5f9" }, 
+      oled: { name: "OLED", icon: "🌑", color: "#000000" } 
+    };
 
-    function applyTheme(t) {
-      currentTheme = t; document.documentElement.setAttribute("data-theme", t); localStorage.setItem(STORAGE_PREFIX + "theme", t);
-      document.getElementById("metaThemeColor").setAttribute("content", themeMeta[t].color); document.getElementById("themeIcon").innerText = themeMeta[t].icon;
+    function getPreferredSystemTheme() {
+      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        return "midnight";
+      }
+      return "light";
+    }
+
+    // Kullanıcı elle bir tema seçmediyse telefonun sistem temasını baz al
+    let savedTheme = localStorage.getItem(STORAGE_PREFIX + "theme");
+    let currentTheme = savedTheme || getPreferredSystemTheme();
+
+    function applyTheme(t, isManual = false) {
+      currentTheme = t; 
+      document.documentElement.setAttribute("data-theme", t); 
+      if (isManual) {
+        localStorage.setItem(STORAGE_PREFIX + "theme", t);
+      }
+      const mCol = document.getElementById("metaThemeColor");
+      const tIco = document.getElementById("themeIcon");
+      if (mCol && themeMeta[t]) mCol.setAttribute("content", themeMeta[t].color); 
+      if (tIco && themeMeta[t]) tIco.innerText = themeMeta[t].icon;
       if (typeof renderAll === "function") renderAll();
     }
-    function cycleTheme() { let idx = themes.indexOf(currentTheme); applyTheme(themes[(idx + 1) % themes.length]); }
-    function toggleFullScreen() { if (!document.fullscreenElement) { document.documentElement.requestFullscreen().catch(() => {}); } else { if (document.exitFullscreen) document.exitFullscreen(); } }
 
-    const fontSizes = { small: { size: '14px', label: '%100' }, medium: { size: '16px', label: '%115' }, large: { size: '18px', label: '%130' } };
-    let currentFontSizeKey = localStorage.getItem(STORAGE_PREFIX + "font_size") || "small";
+    function cycleTheme() { 
+      let idx = themes.indexOf(currentTheme); 
+      applyTheme(themes[(idx + 1) % themes.length], true); 
+    }
+
+    function toggleFullScreen() { 
+      if (!document.fullscreenElement) { 
+        document.documentElement.requestFullscreen().catch(() => {}); 
+      } else { 
+        if (document.exitFullscreen) document.exitFullscreen(); 
+      } 
+    }
+
+    // Telefonun modu canlı olarak değişirse (Gündüz -> Gece) anında yakala
+    if (window.matchMedia) {
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+        // Eğer kullanıcı özellikle elle bir tema kilitlemediyse sistemle birlikte geçiş yap
+        if (!localStorage.getItem(STORAGE_PREFIX + "theme")) {
+          applyTheme(e.matches ? "midnight" : "light", false);
+        }
+      });
+    }
 
     function applyFontSize(key) {
       if (!fontSizes[key]) key = "small";
