@@ -322,7 +322,9 @@ async function exportJSON() {
     const safeFuels = (window.fuels && Array.isArray(window.fuels)) ? window.fuels : getPersistedData("fuels", [], []);
     const safeOdoLogs = (window.odoLogs && Array.isArray(window.odoLogs)) ? window.odoLogs : getPersistedData("odologs", [], []);
     const safeExpenses = (typeof expenses !== 'undefined' && Array.isArray(expenses)) ? expenses : getPersistedData("expenses", [], []);
-    const safeTires = (typeof tireData !== 'undefined') ? tireData : getPersistedData("tires", [], defaultTireData);
+    
+    const fallbackTires = (typeof defaultTireData !== 'undefined') ? defaultTireData : { activeSet: "summer", summer: {}, winter: {} };
+    const safeTires = (typeof tireData !== 'undefined') ? tireData : getPersistedData("tires", [], fallbackTires);
     const safeProfile = (typeof carProfile !== 'undefined') ? carProfile : getPersistedData("profile", [], defaultProfile);
     const safeRoute = (window.activeRoute !== 'undefined') ? window.activeRoute : getPersistedData("active_route", [], null);
     const safePaymentMethods = (typeof customPaymentMethods !== 'undefined') ? customPaymentMethods : getPersistedData("payment_methods", [], ["Nakit"]);
@@ -469,9 +471,9 @@ function wipeAllDataSecurely() {
   if ((document.getElementById("wipeConfirmInput").value || "").trim().toUpperCase() !== "EVET") return alert("Silmek için EVET yazın.");
   if (confirm("Tüm veriler kalıcı olarak silinecek. Emin misiniz?")) {
     window.fuels = []; window.odoLogs = []; expenses = []; window.activeRoute = null;
-    tireData = defaultTireData;
+    tireData = (typeof defaultTireData !== 'undefined') ? defaultTireData : {};
     carProfile = defaultProfile;
-    customPaymentMethods = [...defaultPaymentMethods];
+    customPaymentMethods = (typeof defaultPaymentMethods !== 'undefined') ? [...defaultPaymentMethods] : ["Nakit"];
     cardRewards = {};
     persistAllData();
     persistPaymentMethods();
@@ -545,7 +547,7 @@ function renderAll() {
   if (typeof renderCharts === 'function') renderCharts(cf);
 }
 
-// GÜVENLİ BAŞLATICI: Tüm modüller hazır olunca tek seferde çalıştır
+// GÜVENLİ BAŞLATICI: Wszystkie modüle hazır olunca tek seferde çalıştır
 window.addEventListener('DOMContentLoaded', () => {
   initIndexedDB().then(() => {
     applyCurrentTheme();
