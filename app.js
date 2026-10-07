@@ -462,10 +462,13 @@ function renderAll() {
   if (typeof renderCharts === 'function') renderCharts(cf);
 }
 
-// BAŞLATICI
-initIndexedDB().then(() => {
-  applyCurrentTheme();
-  applyFontSize(currentFontSizeKey);
-  populateYearSelector();
-  renderAll();
+// GÜVENLİ BAŞLATICI: Tüm modüller hazır olunca tek seferde çalıştır
+window.addEventListener('DOMContentLoaded', () => {
+  initIndexedDB().then(() => {
+    applyCurrentTheme();
+    applyFontSize(currentFontSizeKey);
+    populateYearSelector();
+    if (typeof renderTiresTab === 'function') renderTiresTab();
+    renderAll();
+  });
 });
