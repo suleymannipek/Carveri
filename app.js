@@ -66,6 +66,47 @@ async function getAllDocsFromDB() {
   });
 }
 
+// Belge / Fiş Yönetimi Fonksiyonları
+function handleDocUpload(event, idTargetId, thumbTargetId, previewBoxId) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const dataUri = e.target.result;
+    const docId = "doc_" + Date.now() + "_" + Math.random().toString(36).substring(2, 6);
+    await saveDocToDB(docId, dataUri);
+    document.getElementById(idTargetId).value = docId;
+    const thumb = document.getElementById(thumbTargetId);
+    if (thumb && !dataUri.startsWith("data:application/pdf")) {
+      thumb.src = dataUri;
+      thumb.classList.remove("hidden");
+    }
+    document.getElementById(previewBoxId).classList.remove("hidden");
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeLoadedDoc(idTargetId, thumbTargetId, previewBoxId) {
+  const docId = document.getElementById(idTargetId).value;
+  if (docId) deleteDocFromDB(docId);
+  document.getElementById(idTargetId).value = "";
+  const thumb = document.getElementById(thumbTargetId);
+  if (thumb) { thumb.src = ""; thumb.classList.add("hidden"); }
+  document.getElementById(previewBoxId).classList.add("hidden");
+}
+
+async function viewDocumentById(docId) {
+  const uri = await getDocFromDB(docId);
+  if (!uri) return alert("Belge bulunamadı.");
+  const content = document.getElementById("docViewerContent");
+  if (uri.startsWith("data:application/pdf")) {
+    content.innerHTML = `<embed src="${uri}" type="application/pdf" class="w-full h-96" />`;
+  } else {
+    content.innerHTML = `<img src="${uri}" class="max-h-[70vh] rounded-lg object-contain shadow" />`;
+  }
+  openModalDirectly("docViewerModal");
+}
+
 if (navigator.storage && navigator.storage.persist) {
   navigator.storage.persist().then(() => {});
 }
@@ -326,7 +367,7 @@ async function exportJSON() {
     const fallbackTires = (typeof defaultTireData !== 'undefined') ? defaultTireData : { activeSet: "summer", summer: {}, winter: {} };
     const safeTires = (typeof tireData !== 'undefined') ? tireData : getPersistedData("tires", [], fallbackTires);
     const safeProfile = (typeof carProfile !== 'undefined') ? carProfile : getPersistedData("profile", [], defaultProfile);
-    const safeRoute = (window.activeRoute !== 'undefined') ? window.activeRoute : getPersistedData("active_route", [], null);
+    const safeRoute = (typeof window.activeRoute !== 'undefined') ? window.activeRoute : getPersistedData("active_route", [], null);
     const safePaymentMethods = (typeof customPaymentMethods !== 'undefined') ? customPaymentMethods : getPersistedData("payment_methods", [], ["Nakit"]);
     const safeCardRewards = (typeof cardRewards !== 'undefined') ? cardRewards : getPersistedData("card_rewards", [], {});
 
@@ -547,7 +588,7 @@ function renderAll() {
   if (typeof renderCharts === 'function') renderCharts(cf);
 }
 
-// GÜVENLİ BAŞLATICI: Wszystkie modüle hazır olunca tek seferde çalıştır
+// GÜVENLİ BAŞLATICI
 window.addEventListener('DOMContentLoaded', () => {
   initIndexedDB().then(() => {
     applyCurrentTheme();
