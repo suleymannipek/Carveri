@@ -289,7 +289,7 @@ function renderTiresTab() {
   document.getElementById("tireMountedKm").innerText = setObj.mountedKm ? `${setObj.mountedKm.toLocaleString('tr-TR')} KM` : "--";
 
   const liveKm = getLatestVehicleKm();
-  const dDist = (setObj.mountedKm && liveKm >= setObj.mountedKm) ? liveKm - setObj.mountedKm : 0;
+  const dDist = (setObj.mountedKm !== null && setObj.mountedKm !== undefined && liveKm >= setObj.mountedKm) ? liveKm - setObj.mountedKm : 0;
   document.getElementById("tireSeasonDistance").innerText = `${dDist.toLocaleString('tr-TR')} km`;
 
   document.getElementById("tireRotationAlert").classList.toggle("hidden", dDist < 10000);
@@ -513,4 +513,157 @@ function switchReportMode(mode) {
       </div>
     `;
   }
+}
+
+// Kart ve Akordiyon Yönetimi
+function toggleCardAccordion() {
+  const body = document.getElementById("cardAccordionBody");
+  const icon = document.getElementById("cardAccordionIcon");
+  if (!body) return;
+  const isHidden = body.classList.toggle("hidden");
+  if (icon) icon.innerText = isHidden ? "▼ Göster" : "▲ Gizle";
+}
+
+function addNewCustomCard() {
+  const input = document.getElementById("newPaymentMethodInput");
+  const val = input.value.trim();
+  if (!val) return;
+  if (!customPaymentMethods.includes(val)) {
+    customPaymentMethods.push(val);
+    persistPaymentMethods();
+    input.value = "";
+    renderPaymentBreakdown();
+  } else {
+    alert("Bu ödeme yöntemi zaten mevcut.");
+  }
+}
+
+let activeStatementCard = null;
+function openCardStatement(pm) {
+  activeStatementCard = pm;
+  document.getElementById("stmtCardTitle").innerText = pm;
+  const activeE = expenses.filter(e => (selectedYear === "all" || (e.date && e.date.startsWith(selectedYear))) && (e.paymentMethod || "Nakit") === pm);
+  const activeF = fuels.filter(f => (selectedYear === "all" || (f.date && f.date.startsWith(selectedYear))) && (f.paymentMethod || "Nakit") === pm);
+
+  let totalSpent = 0;
+  activeE.forEach(e => totalSpent += e.amount);
+  activeF.forEach(f => totalSpent += f.total);
+
+  const rewards = (cardRewards[pm] || []);
+  let totalReward = rewards.reduce((sum, r) => sum + r.amount, 0);
+
+  document.getElementById("stmtTotalSpent").innerText = `₺${Math.round(totalSpent).toLocaleString('tr-TR')}`;
+  document.getElementById("stmtTotalReward").innerText = `₺${Math.round(totalReward).toLocaleString('tr-TR')}`;
+
+  const expListEl = document.getElementById("stmtExpenseList");
+  expListEl.innerHTML = "";
+  [...activeF.map(f => ({ date: f.date, desc: `${f.station} (${f.liters} L)`, amount: f.total })),
+   ...activeE.map(e => ({ date: e.date, desc: `${e.type} ${e.desc ? '- ' + e.desc : ''}`, amount: e.amount }))]
+   .sort((a,b) => new Date(b.date) - new Date(a.date))
+   .forEach(item => {
+     expListEl.innerHTML += `
+       <div class="flex justify-between items-center p-2 rounded-lg theme-sub-box text-[10px]">
+         <div><span class="font-bold">${item.desc}</span><span class="custom-muted block text-[9px]">${formatDateTimeLabel(item.date)}</span></div>
+         <span class="font-black">₺${parseFloat(item.amount).toLocaleString('tr-TR')}</span>
+       </div>`;
+   });
+
+  const rewListEl = document.getElementById("stmtRewardList");
+  rewListEl.innerHTML = "";
+  if (rewards.length === 0) {
+    rewListEl.innerHTML = `<div class="text-[9px] custom-muted">Eklenmiş bonus yok.</div>`;
+  } else {
+    rewards.slice().reverse().forEach(r => {
+      rewListEl.innerHTML += `
+        <div class="flex justify-between items-center p-2 rounded-lg theme-sub-box text-[10px]">
+          <div><span class="font-bold text-emerald-600 dark:text-emerald-400">${r.note || 'Bonus'}</span><span class="custom-muted block text-[9px]">${formatDateTimeLabel(r.date)}</span></div>
+          <span class="font-black text-emerald-600 dark:text-emerald-400">+₺${parseFloat(r.amount).toLocaleString('tr-TR')}</span>
+        </div>`;
+    });
+  }
+  openModalDirectly("cardStatementModal");
+}
+
+function openRewardModalFromStatement() {
+  if (!activeStatementCard) return;
+  document.getElementById("rwCardName").value = activeStatementCard;
+  document.getElementById("rwDate").value = getNowLocalISO();
+  document.getElementById("rwAmount").value = "";
+  document.getElementById("rwNote").value = "";
+  openModalDirectly("rewardModal");
+}
+
+function saveRewardEntry(e) {
+  e.preventDefault();
+  const card = document.getElementById("rwCardName").value;
+  const date = document.getElementById("rwDate").value;
+  const amount = parseFloat(document.getElementById("rwAmount").value) || 0;
+  const note = document.getElementById("rwNote").value.trim();
+
+  if (!cardRewards[card]) cardRewards[card] = [];
+  cardRewards[card].push({ date, amount, note });
+  persistPaymentMethods();
+  closeModal("rewardModal");
+  openCardStatement(card);
+}
+
+function deleteActiveStatementCard() {
+  if (!activeStatementCard) return;
+  if (activeStatementCard === "Nakit") return alert("Nakit yöntemi silinemez.");
+  if (confirm(`${activeStatementCard} yöntemini silmek istediğinize emin misiniz?`)) {
+    customPaymentMethods = customPaymentMethods.filter(c => c !== activeStatementCard);
+    delete cardRewards[activeStatementCard];
+    persistPaymentMethods();
+    closeModal("cardStatementModal");
+    renderAll();
+  }
+}
+
+// Tarih Aralıklı Yakıt Analizi
+function openCustomFuelFilterModal() {
+  document.getElementById("cffStartDate").value = "";
+  document.getElementById("cffEndDate").value = "";
+  applyCustomFuelFilter();
+  openModalDirectly("customFuelFilterModal");
+}
+
+function applyCustomFuelFilter() {
+  const start = document.getElementById("cffStartDate").value;
+  const end = document.getElementById("cffEndDate").value;
+  const listEl = document.getElementById("cffResultsList");
+  listEl.innerHTML = "";
+
+  const filtered = (window.fuels || []).filter(f => {
+    const fDate = f.date ? f.date.split("T")[0] : "";
+    if (start && fDate < start) return false;
+    if (end && fDate > end) return false;
+    return true;
+  }).sort((a,b) => new Date(b.date) - new Date(a.date));
+
+  let totAm = 0, totLit = 0;
+  filtered.forEach(f => {
+    totAm += f.total;
+    totLit += f.liters;
+    listEl.innerHTML += `
+      <div class="p-2 rounded-xl theme-sub-box flex justify-between items-center text-[10px]">
+        <div>
+          <b class="text-cyan-600 dark:text-cyan-400">${f.station}</b> • ${f.liters} L
+          <span class="custom-muted block text-[9px]">${formatDateTimeLabel(f.date)}</span>
+        </div>
+        <b class="font-black">₺${parseFloat(f.total).toLocaleString('tr-TR')}</b>
+      </div>`;
+  });
+
+  document.getElementById("cffTotalAmount").innerText = `₺${Math.round(totAm).toLocaleString('tr-TR')}`;
+  document.getElementById("cffTotalLiters").innerText = `${totLit.toFixed(1)} L`;
+  document.getElementById("cffAvgPrice").innerText = totLit > 0 ? `${(totAm / totLit).toFixed(2)} ₺/L` : "0.00 ₺/L";
+}
+
+// Hatırlatıcı Açılır Paneli
+function toggleSubReminderPanel() {
+  const details = document.getElementById("subReminderDetails");
+  const icon = document.getElementById("stripToggleIcon");
+  if (!details) return;
+  const isHidden = details.classList.toggle("hidden");
+  if (icon) icon.innerText = isHidden ? "▼" : "▲";
 }
