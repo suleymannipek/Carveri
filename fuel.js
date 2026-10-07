@@ -1,9 +1,16 @@
 // -------------------------------------------------------------
 // FUEL.JS - YAKIT, KİLOMETRE, MENZİL VE ROTA MOTORU
 // -------------------------------------------------------------
-let fuels = getPersistedData("fuels", ["ototakip_fuels", "oto_fuels_v8"], []);
-let odoLogs = getPersistedData("odologs", ["ototakip_odologs", "oto_odologs_v8"], []);
-let activeRoute = getPersistedData("active_route", [], null);
+
+// Global değişkenleri güvenli şekilde window nesnesine bağla (Initialization hatasını önler)
+window.fuels = (typeof getPersistedData === 'function') ? getPersistedData("fuels", ["ototakip_fuels", "oto_fuels_v8"], []) : [];
+window.odoLogs = (typeof getPersistedData === 'function') ? getPersistedData("odologs", ["ototakip_odologs", "oto_odologs_v8"], []) : [];
+window.activeRoute = (typeof getPersistedData === 'function') ? getPersistedData("active_route", [], null) : null;
+
+// Kısa yollar (Kod içinde yerel değişken adlarıyla uyumlu çalışması için)
+let fuels = window.fuels;
+let odoLogs = window.odoLogs;
+let activeRoute = window.activeRoute;
 
 function updateLpgVisibilityInApp() { 
   document.getElementById("fuelTypeWrapper").classList.toggle("hidden", !carProfile.hasLpg); 
@@ -599,7 +606,7 @@ function renderFuelCards(combinedList) {
               </div>
               <div>
                 <span class="custom-muted block text-[9px] font-bold">Şube / Ödeme</span>
-                <span class="font-black truncate block">${item.branch || 'Merkez'} • ${item.paymentMethod || 'Nakit'}</span>
+                <span class="font-black truncate block">${item.branch \vert{}\vert{} 'Merkez'} •${item.paymentMethod || 'Nakit'}</span>
               </div>
               <div>
                 <span class="custom-muted block text-[9px] font-bold">Litre Fiyatı</span>
