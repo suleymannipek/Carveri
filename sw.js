@@ -1,8 +1,12 @@
-const CACHE_NAME = 'carveri-v1';
+const CACHE_NAME = 'carveri-v2';
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
+  './app.js',
+  './fuel.js',
+  './expenses.js',
+  './charts.js',
   'https://cdn.tailwindcss.com',
   'https://cdn.jsdelivr.net/npm/chart.js'
 ];
