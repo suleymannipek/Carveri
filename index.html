@@ -1751,20 +1751,67 @@
 
   routes.slice().reverse().forEach(r => {
     container.innerHTML += `
-      <div class="p-2.5 rounded-xl theme-sub-box flex justify-between items-center shadow-sm">
-        <div>
-          <div class="font-black text-cyan-600 dark:text-cyan-400 text-[11px]">${r.name}</div>
+      <div class="p-2.5 rounded-xl theme-sub-box flex justify-between items-center shadow-sm gap-2">
+        <div class="flex-1 min-w-0">
+          <div class="font-black text-cyan-600 dark:text-cyan-400 text-[11px] truncate">${r.name}</div>
           <div class="text-[10px] custom-muted font-semibold">
-            ${formatDateTimeLabel(r.date)} • <b class="text-blue-500">${r.distance.toLocaleString('tr-TR')} km</b>
+            ${formatDateTimeLabel(r.date)} • <b class="text-blue-500">${parseFloat(r.distance).toLocaleString('tr-TR')} km</b>
           </div>
         </div>
-        <div class="text-right">
+        <div class="text-right flex-shrink-0">
           <div class="font-black text-emerald-600 dark:text-emerald-400 text-xs">${r.consumption} L/100km</div>
           <div class="text-[9px] custom-muted font-bold">${r.liters} L yakıt</div>
+        </div>
+        <div class="flex items-center gap-1 pl-1 border-l border-slate-700/30 flex-shrink-0">
+          <button onclick="editCompletedRoute('${r.id}')" title="Düzenle" class="p-1 hover:bg-slate-700/20 rounded text-xs leading-none">✏️</button>
+          <button onclick="deleteCompletedRoute('${r.id}')" title="Sil" class="p-1 hover:bg-rose-500/20 rounded text-xs leading-none">🗑️</button>
         </div>
       </div>
     `;
   });
+}
+
+function deleteCompletedRoute(routeId) {
+  const routes = window.completedRoutes || [];
+  const target = routes.find(r => r.id === routeId);
+  if (!target) return;
+
+  if (confirm(`"${target.name}" rotasını silmek istediğinize emin misiniz?`)) {
+    window.completedRoutes = routes.filter(r => r.id !== routeId);
+    persistAllData();
+    renderAll();
+  }
+}
+
+function editCompletedRoute(routeId) {
+  const routes = window.completedRoutes || [];
+  const r = routes.find(item => item.id === routeId);
+  if (!r) return;
+
+  const newName = prompt("Rota Adı:", r.name);
+  if (newName === null) return;
+
+  const newDistStr = prompt("Net Mesafe (KM):", r.distance);
+  if (newDistStr === null) return;
+
+  const newConsStr = prompt("Saf Ortalama Tüketim (L/100km):", r.consumption);
+  if (newConsStr === null) return;
+
+  const d = parseFloat(newDistStr);
+  const c = parseFloat(newConsStr);
+
+  if (isNaN(d) || d <= 0 || isNaN(c) || c < 0) {
+    return alert("Lütfen geçerli sayısal değerler girin.");
+  }
+
+  // Değerleri güncelle ve harcanan litreyi otomatik yeniden hesapla
+  r.name = newName.trim() || r.name;
+  r.distance = d;
+  r.consumption = c.toFixed(2);
+  r.liters = parseFloat(((d * c) / 100).toFixed(1));
+
+  persistAllData();
+  renderAll();
 }
 
     function openOdoModal(editId = null) {
