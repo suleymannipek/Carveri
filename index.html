@@ -278,6 +278,18 @@
         </div>
       </div>
 
+      <!-- TAMAMLANAN ROTALAR GEÇMİŞİ -->
+      <div id="completedRoutesCard" class="custom-card p-3.5 shadow space-y-2.5 hidden">
+        <div class="flex justify-between items-center border-b border-slate-700/40 pb-2">
+          <div class="flex items-center gap-2">
+            <span class="text-base">🧭</span>
+            <h4 class="text-xs font-black text-cyan-600 dark:text-cyan-400">Tamamlanan Rota Geçmişi</h4>
+          </div>
+          <span id="routeCountBadge" class="text-[9px] font-bold theme-badge-cyan px-2 py-0.5 rounded-full">0 Rota</span>
+        </div>
+        <div id="completedRoutesList" class="space-y-2 text-xs"></div>
+      </div>
+
       <div class="flex justify-between items-center px-1">
         <span class="text-[11px] font-bold custom-muted tracking-wide flex items-center gap-1">
           <span>📅</span> <span id="dashPeriodTitle">Dönem: --</span>
@@ -1505,6 +1517,7 @@
     window.fuels = getPersistedData("fuels", ["ototakip_fuels", "oto_fuels_v8"], []);
     window.odoLogs = getPersistedData("odologs", ["ototakip_odologs", "oto_odologs_v8"], []);
     window.activeRoute = getPersistedData("active_route", [], null);
+    window.completedRoutes = getPersistedData("completed_routes", [], []);
 
     function updateLpgVisibilityInApp() { document.getElementById("fuelTypeWrapper").classList.toggle("hidden", !carProfile.hasLpg); }
 
@@ -1648,15 +1661,111 @@
     }
 
     function finishRoutePrompt() {
-      if (!window.activeRoute) return;
-      const endKm = prompt("Rotayı tamamlamak için bitiş kilometresini girin:", getLatestVehicleKm()); if (!endKm) return;
-      const endDash = prompt("Bitişte yol bilgisayarında yazan ortalama tüketimi girin (L/100km):", window.activeRoute.startDash); if (!endDash) return;
-      const eK = parseFloat(endKm); const eD = parseFloat(endDash); const dKm = eK - window.activeRoute.startKm;
-      if (dKm <= 0) return alert("Bitiş kilometresi başlangıçtan büyük olmalıdır.");
-      const netLit = Math.max(0, ((eK * eD) / 100) - ((window.activeRoute.startKm * window.activeRoute.startDash) / 100));
-      alert(`✅ Rota Tamamlandı: "${window.activeRoute.name}"\n\nNet Yol: ${dKm.toLocaleString('tr-TR')} km\nSaf Yakıt Tüketimi: ${((netLit / dKm) * 100).toFixed(2)} L/100km\nHarcanan Net Yakıt: ${netLit.toFixed(1)} Litre`);
-      window.activeRoute = null; persistAllData(); renderAll();
+  if (!window.activeRoute) return;
+
+  const actionChoice = confirm(
+    `🧭 AKTİF ROTA: "${window.activeRoute.name}"\n\n` +
+    `• Rotayı hesaplayıp TAMAMLAMAK için [TAMAM] butonuna basın.\n` +
+    `• Rotayı hesaplamadan İPTAL ETMEK için [İPTAL] butonuna basın.`
+  );
+
+  if (!actionChoice) {
+    if (confirm(`"${window.activeRoute.name}" rotasını iptal etmek ve silmek istediğinize emin misiniz?`)) {
+      window.activeRoute = null;
+      persistAllData();
+      renderAll();
+      alert("❌ Rota iptal edildi.");
     }
+    return;
+  }
+
+  const tripTotalStr = prompt(
+    `"${window.activeRoute.name}" rotasını tamamlamak için:\n\nSon full depodan (dful) bu yana yapılan TOPLAM Trip KM'yi girin:`, 
+    ""
+  );
+  if (!tripTotalStr) return;
+
+  const dashAvgStr = prompt(
+    "Yol bilgisayarında görünen güncel ortalama tüketimi girin (L/100km):", 
+    window.activeRoute.startDash || ""
+  );
+  if (!dashAvgStr) return;
+
+  const kmTotal = parseFloat(tripTotalStr);
+  const ortTotal = parseFloat(dashAvgStr);
+  const km1 = parseFloat(window.activeRoute.startKm) || 0;
+  const ort1 = parseFloat(window.activeRoute.startDash) || 0;
+
+  if (isNaN(kmTotal) || kmTotal <= km1) {
+    return alert(`Hata: Girilen toplam KM (${kmTotal}), rota başındaki sayaçtan (${km1} km) büyük olmalıdır.`);
+  }
+
+  // --- DENKLEMİN ÇÖZÜMÜ ---
+  const kmRota = kmTotal - km1;
+  const lit1 = (km1 * ort1) / 100;
+  const litTotal = (kmTotal * ortTotal) / 100;
+  const litRota = Math.max(0, litTotal - lit1);
+  const ortRota = ((litRota / kmRota) * 100).toFixed(2);
+
+  // ROTA GEÇMİŞİNE EKLEME
+  if (!Array.isArray(window.completedRoutes)) window.completedRoutes = [];
+  window.completedRoutes.push({
+    id: "route_" + Date.now(),
+    name: window.activeRoute.name,
+    date: getNowLocalISO(),
+    distance: kmRota,
+    consumption: ortRota,
+    liters: parseFloat(litRota.toFixed(1))
+  });
+
+  alert(
+    `✅ ROTA BAŞARIYLA TAMAMLANDI VE KAYDEDİLDİ!\n` +
+    `----------------------------------------\n` +
+    `🧭 Rota: ${window.activeRoute.name}\n` +
+    `🛣️ Net Yol: ${kmRota.toLocaleString('tr-TR')} km\n` +
+    `⛽ Saf Tüketim: ${ortRota} L/100km\n` +
+    `💧 Harcanan: ${litRota.toFixed(1)} L`
+  );
+
+  window.activeRoute = null;
+  persistAllData();
+  renderAll();
+}
+    function renderCompletedRoutes() {
+  const card = document.getElementById("completedRoutesCard");
+  const container = document.getElementById("completedRoutesList");
+  const badge = document.getElementById("routeCountBadge");
+  if (!card || !container) return;
+
+  const routes = window.completedRoutes || [];
+  if (routes.length === 0) {
+    card.classList.add("hidden");
+    card.style.display = "none";
+    return;
+  }
+
+  card.classList.remove("hidden");
+  card.style.display = "block";
+  if (badge) badge.innerText = `${routes.length} Rota`;
+  container.innerHTML = "";
+
+  routes.slice().reverse().forEach(r => {
+    container.innerHTML += `
+      <div class="p-2.5 rounded-xl theme-sub-box flex justify-between items-center shadow-sm">
+        <div>
+          <div class="font-black text-cyan-600 dark:text-cyan-400 text-[11px]">${r.name}</div>
+          <div class="text-[10px] custom-muted font-semibold">
+            ${formatDateTimeLabel(r.date)} • <b class="text-blue-500">${r.distance.toLocaleString('tr-TR')} km</b>
+          </div>
+        </div>
+        <div class="text-right">
+          <div class="font-black text-emerald-600 dark:text-emerald-400 text-xs">${r.consumption} L/100km</div>
+          <div class="text-[9px] custom-muted font-bold">${r.liters} L yakıt</div>
+        </div>
+      </div>
+    `;
+  });
+}
 
     function openOdoModal(editId = null) {
       const tankCapacity = carProfile.fuelTank || 50;
@@ -2196,6 +2305,7 @@
   localStorage.setItem(STORAGE_PREFIX + "tires", JSON.stringify(window.tireData || window.defaultTireData));
   localStorage.setItem(STORAGE_PREFIX + "profile", JSON.stringify(typeof carProfile !== 'undefined' ? carProfile : defaultProfile));
   localStorage.setItem(STORAGE_PREFIX + "active_route", JSON.stringify(window.activeRoute || null));
+  localStorage.setItem(STORAGE_PREFIX + "completed_routes", JSON.stringify(window.completedRoutes || []));
 }
 
     function renderAll() {
@@ -2236,6 +2346,7 @@
 
       updateRangeEstimate(currentAvgCons); updateActiveRouteBanner(); renderFuelCards(getFilteredCombinedLogs()); renderExpenseCards();
       if (typeof renderCharts === 'function') renderCharts(cf);
+      renderCompletedRoutes();
     }
 
     // GÜVENLİ BAŞLATICI (Sadece her şey yüklendikten sonra çalışır)
