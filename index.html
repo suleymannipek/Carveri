@@ -165,7 +165,6 @@
       padding-bottom: calc(5.5rem + var(--sab));
       overflow-x: hidden;
     }
-    /* GİZLİ KATMAN (MODAL) HATALARI İÇİN KESİN ÇÖZÜM */
     .hidden {
       display: none !important;
       pointer-events: none !important;
@@ -325,7 +324,7 @@
         <div onclick="openCustomFuelFilterModal()" class="custom-card p-3.5 shadow relative overflow-hidden group hover:border-amber-500/50 transition-all cursor-pointer">
           <div class="flex justify-between items-start">
             <div class="flex items-center gap-1.5">
-              <span class="text-[9px] font-extrabold custom-muted uppercase tracking-wider">YAKIT GİDERİ</span>
+              <span class="text-[9px] font-extrabold custom-muted uppercase tracking-wider">YAKYT GİDERİ</span>
               <span class="text-[8px] theme-badge-amber font-black px-1.5 py-0.5 rounded shadow-sm">Filtrele 🔍</span>
             </div>
             <span class="w-6 h-6 rounded-lg theme-badge-amber flex items-center justify-center text-[11px] shadow-sm font-bold">⛽</span>
@@ -783,6 +782,18 @@
           <label for="fIsFullCheckbox" class="font-black text-xs cursor-pointer block">⛽ Tam Depo (Fullendi)</label>
           <input type="checkbox" id="fIsFullCheckbox" checked class="w-5 h-5 rounded text-blue-600 focus:ring-0 cursor-pointer" />
         </div>
+
+        <!-- YAKIT ALIRKEN ROTA BAŞLATMA ALANI -->
+        <div class="p-3 rounded-xl theme-sub-box border border-cyan-800/40 space-y-2">
+          <div class="flex items-center gap-2">
+            <input type="checkbox" id="fuelStartRoute" onchange="document.getElementById('fuelRouteNameBox').classList.toggle('hidden', !this.checked)" class="w-4 h-4 rounded text-cyan-600 focus:ring-0 cursor-pointer" />
+            <label for="fuelStartRoute" class="text-[11px] font-black text-cyan-600 dark:text-cyan-400 cursor-pointer">🧭 Bu yakıt alımıyla yeni bir rota başlat</label>
+          </div>
+          <div id="fuelRouteNameBox" class="hidden">
+            <input type="text" id="fuelRouteName" placeholder="Rota Adı (örn: Eskişehir - İzmir)" class="w-full custom-input border p-2 rounded-xl outline-none font-bold text-xs" />
+          </div>
+        </div>
+
         <div>
           <label class="custom-muted text-[10px] font-bold flex justify-between"><span>📷 Fiş Yükle</span><span class="text-[9px] text-cyan-600 dark:text-cyan-400 font-bold">IndexedDB</span></label>
           <input type="file" id="fDocInput" accept="image/*,application/pdf" onchange="handleDocUpload(event, 'fDocId', 'fDocThumbnail', 'fDocPreviewBox')" class="mt-1 w-full text-[11px] custom-muted file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:bg-blue-600 file:text-white file:font-bold" />
@@ -874,8 +885,7 @@
     </div>
   </div>
 
-  <!-- DİĞER TÜM MODALLAR... -->
-  <!-- KART EKSTRE MODALI -->
+  <!-- DİĞER MODALLAR -->
   <div id="cardStatementModal" class="fixed inset-0 bg-black/90 modal-backdrop flex items-center justify-center p-3 hidden backdrop-blur-md">
     <div class="custom-card max-w-sm w-full rounded-2xl p-4 space-y-3 border shadow-2xl max-h-[85vh] flex flex-col">
       <div class="flex justify-between items-center border-b border-slate-700/50 pb-2.5 shrink-0">
@@ -969,7 +979,7 @@
   <div id="tireMountModal" class="fixed inset-0 bg-black/80 modal-backdrop flex items-center justify-center p-3 hidden backdrop-blur-sm">
     <div class="custom-card w-full max-w-md rounded-2xl p-4 border shadow-2xl max-h-[85vh] flex flex-col">
       <div class="flex justify-between items-center mb-3 shrink-0 border-b border-slate-700/40 pb-2">
-        <h3 class="font-black text-xs">🛞 Lastik Seti Tak / Değiştir</h3>
+        <h3 id="tireMountModalTitle" class="font-black text-xs">🛞 Lastik Seti Tak / Değiştir</h3>
         <button type="button" onclick="closeModal('tireMountModal')" class="custom-muted text-lg font-black">✕</button>
       </div>
       <form onsubmit="saveTireMount(event)" class="space-y-3 text-xs flex-1 overflow-y-auto history-scroll pr-1">
@@ -1060,7 +1070,6 @@
     </div>
   </nav>
 
-  <!-- TÜM JAVASCRIPT KODLARI BURADA DERLENDİ -->
   <script>
     // --- APP.JS TEMEL VE VERİTABANI İŞLEMLERİ ---
     const IDB_NAME = "OtoTakipProMax_DB";
@@ -1219,7 +1228,7 @@
     const themeMeta = { 
       auto: { name: "Otomatik", icon: "⚙️", color: "#0b1329" },
       midnight: { name: "Gece", icon: "🔵", color: "#0b1329" }, 
-      oled: { name: "OLED", icon: "🌑", color: "#000000" },
+      oled: { name: "OLED", icon: "🌑", color: "#000000" }, 
       light: { name: "Gündüz", icon: "☀️", color: "#f1f5f9" }
     };
 
@@ -1653,7 +1662,7 @@
       let pureConsStr = "--";
       if (dKm > 0 && curDash > 0) {
         const netLit = ((liveKm * curDash) / 100) - ((window.activeRoute.startKm * window.activeRoute.startDash) / 100);
-        if (netLit > 0) pureConsStr = ((netLit / dKm) * 100).toFixed(2);
+        if (netLit >= 0) pureConsStr = ((netLit / dKm) * 100).toFixed(2);
       }
       document.getElementById("arName").innerText = window.activeRoute.name;
       document.getElementById("arDetails").innerText = `Yapılan: +${dKm.toLocaleString('tr-TR')} km • Saf Ort: ${pureConsStr} L/100km`;
@@ -1661,158 +1670,170 @@
     }
 
     function finishRoutePrompt() {
-  if (!window.activeRoute) return;
+      if (!window.activeRoute) return;
 
-  const actionChoice = confirm(
-    `🧭 AKTİF ROTA: "${window.activeRoute.name}"\n\n` +
-    `• Rotayı hesaplayıp TAMAMLAMAK için [TAMAM] butonuna basın.\n` +
-    `• Rotayı hesaplamadan İPTAL ETMEK için [İPTAL] butonuna basın.`
-  );
+      const actionChoice = confirm(
+        `🧭 AKTİF ROTA: "${window.activeRoute.name}"\n\n` +
+        `• Rotayı hesaplayıp TAMAMLAMAK için [TAMAM] butonuna basın.\n` +
+        `• Rotayı hesaplamadan İPTAL ETMEK için [İPTAL] butonuna basın.`
+      );
 
-  if (!actionChoice) {
-    if (confirm(`"${window.activeRoute.name}" rotasını iptal etmek ve silmek istediğinize emin misiniz?`)) {
+      if (!actionChoice) {
+        if (confirm(`"${window.activeRoute.name}" rotasını iptal etmek ve silmek istediğinize emin misiniz?`)) {
+          window.activeRoute = null;
+          persistAllData();
+          renderAll();
+          alert("❌ Rota iptal edildi.");
+        }
+        return;
+      }
+
+      const tripTotalStr = prompt(
+        `"${window.activeRoute.name}" rotasını tamamlamak için:\n\nSon full depodan (dful) bu yana yapılan TOPLAM Trip KM'yi girin:`, 
+        ""
+      );
+      if (tripTotalStr === null || tripTotalStr.trim() === "") return;
+
+      const dashAvgStr = prompt(
+        "Yol bilgisayarında görünen güncel ortalama tüketimi girin (L/100km):", 
+        window.activeRoute.startDash !== undefined ? window.activeRoute.startDash : ""
+      );
+      if (dashAvgStr === null || dashAvgStr.trim() === "") return;
+
+      const kmTotal = parseFloat(tripTotalStr);
+      const ortTotal = parseFloat(dashAvgStr);
+      const km1 = parseFloat(window.activeRoute.startKm) || 0;
+      const ort1 = parseFloat(window.activeRoute.startDash) || 0;
+
+      if (isNaN(kmTotal) || kmTotal < km1) {
+        return alert(`Hata: Girilen toplam KM (${kmTotal}), rota başındaki sayaçtan (${km1} km) küçük olamaz.`);
+      }
+
+      // Mevcut etabın net mesafesi
+      const kmCurrentStage = kmTotal - km1;
+      const lit1 = (km1 * ort1) / 100;
+      const litTotal = (kmTotal * ortTotal) / 100;
+      const litCurrentStage = Math.max(0, litTotal - lit1);
+
+      // Varsa önceki etaplardan biriken yakıt ve mesafe
+      const previousLit = parseFloat(window.activeRoute.accumulatedLit) || 0;
+      const previousKm = parseFloat(window.activeRoute.accumulatedKm) || 0;
+
+      const totalRouteKm = previousKm + kmCurrentStage;
+      const totalRouteLit = previousLit + litCurrentStage;
+
+      if (totalRouteKm <= 0) {
+        return alert("Hata: Rotada katedilen net mesafe 0'dan büyük olmalıdır.");
+      }
+
+      // 0.00 L/100km tüketim desteği
+      const ortRota = ((totalRouteLit / totalRouteKm) * 100).toFixed(2);
+
+      if (!Array.isArray(window.completedRoutes)) window.completedRoutes = [];
+      window.completedRoutes.push({
+        id: "route_" + Date.now(),
+        name: window.activeRoute.name,
+        date: getNowLocalISO(),
+        distance: totalRouteKm,
+        consumption: ortRota,
+        liters: parseFloat(totalRouteLit.toFixed(2))
+      });
+
+      alert(
+        `✅ ROTA BAŞARIYLA TAMAMLANDI VE KAYDEDİLDİ!\n` +
+        `----------------------------------------\n` +
+        `🧭 Rota: ${window.activeRoute.name}\n` +
+        `🛣️ Net Mesafe: ${totalRouteKm.toLocaleString('tr-TR')} km\n` +
+        `⛽ Saf Tüketim: ${ortRota} L/100km\n` +
+        `💧 Harcanan: ${totalRouteLit.toFixed(2)} L`
+      );
+
       window.activeRoute = null;
       persistAllData();
       renderAll();
-      alert("❌ Rota iptal edildi.");
     }
-    return;
-  }
 
-  const tripTotalStr = prompt(
-    `"${window.activeRoute.name}" rotasını tamamlamak için:\n\nSon full depodan (dful) bu yana yapılan TOPLAM Trip KM'yi girin:`, 
-    ""
-  );
-  if (!tripTotalStr) return;
-
-  const dashAvgStr = prompt(
-    "Yol bilgisayarında görünen güncel ortalama tüketimi girin (L/100km):", 
-    window.activeRoute.startDash || ""
-  );
-  if (!dashAvgStr) return;
-
-  const kmTotal = parseFloat(tripTotalStr);
-  const ortTotal = parseFloat(dashAvgStr);
-  const km1 = parseFloat(window.activeRoute.startKm) || 0;
-  const ort1 = parseFloat(window.activeRoute.startDash) || 0;
-
-  if (isNaN(kmTotal) || kmTotal <= km1) {
-    return alert(`Hata: Girilen toplam KM (${kmTotal}), rota başındaki sayaçtan (${km1} km) büyük olmalıdır.`);
-  }
-
-  // --- DENKLEMİN ÇÖZÜMÜ ---
-  const kmRota = kmTotal - km1;
-  const lit1 = (km1 * ort1) / 100;
-  const litTotal = (kmTotal * ortTotal) / 100;
-  const litRota = Math.max(0, litTotal - lit1);
-  const ortRota = ((litRota / kmRota) * 100).toFixed(2);
-
-  // ROTA GEÇMİŞİNE EKLEME
-  if (!Array.isArray(window.completedRoutes)) window.completedRoutes = [];
-  window.completedRoutes.push({
-    id: "route_" + Date.now(),
-    name: window.activeRoute.name,
-    date: getNowLocalISO(),
-    distance: kmRota,
-    consumption: ortRota,
-    liters: parseFloat(litRota.toFixed(1))
-  });
-
-  alert(
-    `✅ ROTA BAŞARIYLA TAMAMLANDI VE KAYDEDİLDİ!\n` +
-    `----------------------------------------\n` +
-    `🧭 Rota: ${window.activeRoute.name}\n` +
-    `🛣️ Net Yol: ${kmRota.toLocaleString('tr-TR')} km\n` +
-    `⛽ Saf Tüketim: ${ortRota} L/100km\n` +
-    `💧 Harcanan: ${litRota.toFixed(1)} L`
-  );
-
-  window.activeRoute = null;
-  persistAllData();
-  renderAll();
-}
     function renderCompletedRoutes() {
-  const card = document.getElementById("completedRoutesCard");
-  const container = document.getElementById("completedRoutesList");
-  const badge = document.getElementById("routeCountBadge");
-  if (!card || !container) return;
+      const card = document.getElementById("completedRoutesCard");
+      const container = document.getElementById("completedRoutesList");
+      const badge = document.getElementById("routeCountBadge");
+      if (!card || !container) return;
 
-  const routes = window.completedRoutes || [];
-  if (routes.length === 0) {
-    card.classList.add("hidden");
-    card.style.display = "none";
-    return;
-  }
+      const routes = window.completedRoutes || [];
+      if (routes.length === 0) {
+        card.classList.add("hidden");
+        card.style.display = "none";
+        return;
+      }
 
-  card.classList.remove("hidden");
-  card.style.display = "block";
-  if (badge) badge.innerText = `${routes.length} Rota`;
-  container.innerHTML = "";
+      card.classList.remove("hidden");
+      card.style.display = "block";
+      if (badge) badge.innerText = `${routes.length} Rota`;
+      container.innerHTML = "";
 
-  routes.slice().reverse().forEach(r => {
-    container.innerHTML += `
-      <div class="p-2.5 rounded-xl theme-sub-box flex justify-between items-center shadow-sm gap-2">
-        <div class="flex-1 min-w-0">
-          <div class="font-black text-cyan-600 dark:text-cyan-400 text-[11px] truncate">${r.name}</div>
-          <div class="text-[10px] custom-muted font-semibold">
-            ${formatDateTimeLabel(r.date)} • <b class="text-blue-500">${parseFloat(r.distance).toLocaleString('tr-TR')} km</b>
+      routes.slice().reverse().forEach(r => {
+        container.innerHTML += `
+          <div class="p-2.5 rounded-xl theme-sub-box flex justify-between items-center shadow-sm gap-2">
+            <div class="flex-1 min-w-0">
+              <div class="font-black text-cyan-600 dark:text-cyan-400 text-[11px] truncate">${r.name}</div>
+              <div class="text-[10px] custom-muted font-semibold">
+                ${formatDateTimeLabel(r.date)} • <b class="text-blue-500">${parseFloat(r.distance).toLocaleString('tr-TR')} km</b>
+              </div>
+            </div>
+            <div class="text-right flex-shrink-0">
+              <div class="font-black text-emerald-600 dark:text-emerald-400 text-xs">${r.consumption} L/100km</div>
+              <div class="text-[9px] custom-muted font-bold">${r.liters} L yakıt</div>
+            </div>
+            <div class="flex items-center gap-1 pl-1 border-l border-slate-700/30 flex-shrink-0">
+              <button onclick="editCompletedRoute('${r.id}')" title="Düzenle" class="p-1 hover:bg-slate-700/20 rounded text-xs leading-none">✏️</button>
+              <button onclick="deleteCompletedRoute('${r.id}')" title="Sil" class="p-1 hover:bg-rose-500/20 rounded text-xs leading-none">🗑️</button>
+            </div>
           </div>
-        </div>
-        <div class="text-right flex-shrink-0">
-          <div class="font-black text-emerald-600 dark:text-emerald-400 text-xs">${r.consumption} L/100km</div>
-          <div class="text-[9px] custom-muted font-bold">${r.liters} L yakıt</div>
-        </div>
-        <div class="flex items-center gap-1 pl-1 border-l border-slate-700/30 flex-shrink-0">
-          <button onclick="editCompletedRoute('${r.id}')" title="Düzenle" class="p-1 hover:bg-slate-700/20 rounded text-xs leading-none">✏️</button>
-          <button onclick="deleteCompletedRoute('${r.id}')" title="Sil" class="p-1 hover:bg-rose-500/20 rounded text-xs leading-none">🗑️</button>
-        </div>
-      </div>
-    `;
-  });
-}
+        `;
+      });
+    }
 
-function deleteCompletedRoute(routeId) {
-  const routes = window.completedRoutes || [];
-  const target = routes.find(r => r.id === routeId);
-  if (!target) return;
+    function deleteCompletedRoute(routeId) {
+      const routes = window.completedRoutes || [];
+      const target = routes.find(r => r.id === routeId);
+      if (!target) return;
 
-  if (confirm(`"${target.name}" rotasını silmek istediğinize emin misiniz?`)) {
-    window.completedRoutes = routes.filter(r => r.id !== routeId);
-    persistAllData();
-    renderAll();
-  }
-}
+      if (confirm(`"${target.name}" rotasını silmek istediğinize emin misiniz?`)) {
+        window.completedRoutes = routes.filter(r => r.id !== routeId);
+        persistAllData();
+        renderAll();
+      }
+    }
 
-function editCompletedRoute(routeId) {
-  const routes = window.completedRoutes || [];
-  const r = routes.find(item => item.id === routeId);
-  if (!r) return;
+    function editCompletedRoute(routeId) {
+      const routes = window.completedRoutes || [];
+      const r = routes.find(item => item.id === routeId);
+      if (!r) return;
 
-  const newName = prompt("Rota Adı:", r.name);
-  if (newName === null) return;
+      const newName = prompt("Rota Adı:", r.name);
+      if (newName === null) return;
 
-  const newDistStr = prompt("Net Mesafe (KM):", r.distance);
-  if (newDistStr === null) return;
+      const newDistStr = prompt("Net Mesafe (KM):", r.distance);
+      if (newDistStr === null) return;
 
-  const newConsStr = prompt("Saf Ortalama Tüketim (L/100km):", r.consumption);
-  if (newConsStr === null) return;
+      const newConsStr = prompt("Saf Ortalama Tüketim (L/100km):", r.consumption);
+      if (newConsStr === null) return;
 
-  const d = parseFloat(newDistStr);
-  const c = parseFloat(newConsStr);
+      const d = parseFloat(newDistStr);
+      const c = parseFloat(newConsStr);
 
-  if (isNaN(d) || d <= 0 || isNaN(c) || c < 0) {
-    return alert("Lütfen geçerli sayısal değerler girin.");
-  }
+      if (isNaN(d) || d <= 0 || isNaN(c) || c < 0) {
+        return alert("Lütfen geçerli sayısal değerler girin.");
+      }
 
-  // Değerleri güncelle ve harcanan litreyi otomatik yeniden hesapla
-  r.name = newName.trim() || r.name;
-  r.distance = d;
-  r.consumption = c.toFixed(2);
-  r.liters = parseFloat(((d * c) / 100).toFixed(1));
+      r.name = newName.trim() || r.name;
+      r.distance = d;
+      r.consumption = c.toFixed(2);
+      r.liters = parseFloat(((d * c) / 100).toFixed(1));
 
-  persistAllData();
-  renderAll();
-}
+      persistAllData();
+      renderAll();
+    }
 
     function openOdoModal(editId = null) {
       const tankCapacity = carProfile.fuelTank || 50;
@@ -1855,7 +1876,16 @@ function editCompletedRoute(routeId) {
           window.odoLogs.push({ id: "odo_" + Date.now(), type: "odo_only", date: dateVal, km: kmVal, dashboardL100: dashCons, fuelPercent: fuelPercentVal, isBridge, note: noteVal });
         }
 
-        if (isRouteStart) window.activeRoute = { name: rName, startKm: kmVal, startDash: dashCons || 6.5, startDate: dateVal };
+        if (isRouteStart) {
+          window.activeRoute = {
+            name: rName,
+            startKm: kmVal,
+            startDash: dashCons !== null ? dashCons : 6.5,
+            startDate: dateVal,
+            accumulatedKm: 0,
+            accumulatedLit: 0
+          };
+        }
         persistAllData(); closeModal("odoModal"); populateYearSelector(); renderAll(); alert("KM kaydı başarıyla eklendi!");
       } catch (err) { alert("Kaydetme sırasında bir hata oluştu: " + err.message); }
     }
@@ -1869,6 +1899,7 @@ function editCompletedRoute(routeId) {
       document.getElementById("fDate").value = getNowLocalISO(); const lk = getLatestVehicleKm(); if (lk > 0) document.getElementById("fKm").value = lk;
       document.getElementById("fuelModalTitle").innerText = "⛽ Yeni Yakıt Alımı"; document.getElementById("fuelAnomalyWarning").classList.add("hidden");
       document.getElementById("fuelIntervalBadge").classList.add("hidden"); document.getElementById("fIsFullCheckbox").checked = true;
+      document.getElementById("fuelStartRoute").checked = false; document.getElementById("fuelRouteNameBox").classList.add("hidden"); document.getElementById("fuelRouteName").value = "";
       populatePaymentSelects(); updateLpgVisibilityInApp(); if (lk > 0) checkFuelIntervalLive(lk); openModalDirectly("fuelModal");
     }
 
@@ -1879,6 +1910,7 @@ function editCompletedRoute(routeId) {
       document.getElementById("fFuelType").value = f.fuelType || "Benzin/Dizel"; document.getElementById("fBranch").value = f.branch || ""; document.getElementById("fLiters").value = f.liters;
       document.getElementById("fTotal").value = f.total; document.getElementById("fDashboardL100").value = f.dashL100 || ""; document.getElementById("fPaymentMethod").value = f.paymentMethod || window.customPaymentMethods[0];
       document.getElementById("fIsFullCheckbox").checked = f.isFull !== undefined ? f.isFull : (f.fillLevel === 'full');
+      document.getElementById("fuelStartRoute").checked = false; document.getElementById("fuelRouteNameBox").classList.add("hidden");
       document.getElementById("fDocId").value = f.docId || "";
       if (f.docId) {
         const uri = await getDocFromDB(f.docId);
@@ -1895,14 +1927,61 @@ function editCompletedRoute(routeId) {
         const check = validateTimelineOdo(dateVal, kmVal, id);
         if (!check.isValid) { if (!confirm(`${check.msg}\nYine de kaydetmek istiyor musunuz?`)) return; }
         const isFullVal = document.getElementById("fIsFullCheckbox").checked;
+        const dashL100Val = document.getElementById("fDashboardL100").value ? parseFloat(document.getElementById("fDashboardL100").value) : null;
+        
         const r = {
           id, date: dateVal, km: kmVal, station: document.getElementById("fStation").value, fuelType: carProfile.hasLpg ? document.getElementById("fFuelType").value : "Benzin/Dizel",
           branch: document.getElementById("fBranch").value.trim(), liters: parseFloat(document.getElementById("fLiters").value), total: parseFloat(document.getElementById("fTotal").value),
-          dashL100: document.getElementById("fDashboardL100").value ? parseFloat(document.getElementById("fDashboardL100").value) : null, paymentMethod: document.getElementById("fPaymentMethod").value,
+          dashL100: dashL100Val, paymentMethod: document.getElementById("fPaymentMethod").value,
           isFull: isFullVal, fillLevel: isFullVal ? 'full' : 'quarter', docId: document.getElementById("fDocId").value || null
         };
         const idx = window.fuels.findIndex(x => String(x.id) === String(id));
         if (idx > -1) window.fuels[idx] = r; else window.fuels.push(r);
+
+        // 1. AKTİF ROTA VARKEN YOLDA TEKRAR DEPONUN FULLEMESİ DURUMU
+        if (window.activeRoute && isFullVal) {
+          const resetConfirm = confirm(
+            `🧭 Dikkat: Aktif bir rotadasınız ("${window.activeRoute.name}").\n\n` +
+            `Bu full yakıt alımında yol bilgisayarı / Trip sayacınızı SIFIRLADINIZ MI?`
+          );
+          if (resetConfirm) {
+            const stageTripStr = prompt("Sıfırlamadan önce ekranda yazan Trip KM:", "");
+            const stageAvgStr = prompt("Sıfırlamadan önce ekranda yazan ortalama tüketim (L/100km):", "");
+            
+            const sTrip = parseFloat(stageTripStr) || 0;
+            const sAvg = parseFloat(stageAvgStr) || 0;
+            const km1 = parseFloat(window.activeRoute.startKm) || 0;
+            const ort1 = parseFloat(window.activeRoute.startDash) || 0;
+
+            const stageKm = Math.max(0, sTrip - km1);
+            const lit1 = (km1 * ort1) / 100;
+            const litTotal = (sTrip * sAvg) / 100;
+            const stageLit = Math.max(0, litTotal - lit1);
+
+            window.activeRoute.accumulatedKm = (parseFloat(window.activeRoute.accumulatedKm) || 0) + stageKm;
+            window.activeRoute.accumulatedLit = (parseFloat(window.activeRoute.accumulatedLit) || 0) + stageLit;
+            window.activeRoute.startKm = 0;
+            window.activeRoute.startDash = 0;
+
+            alert(`✅ 1. Etap (${stageKm} km / ${stageLit.toFixed(1)} L) rotaya eklendi. Yeni sayaç sıfırdan devam ediyor.`);
+          }
+        }
+
+        // 2. YAKIT ALIMIYLA YENİ ROTA BAŞLATMA
+        const shouldStartRoute = document.getElementById("fuelStartRoute") && document.getElementById("fuelStartRoute").checked;
+        if (shouldStartRoute) {
+          const rNameInput = (document.getElementById("fuelRouteName")?.value || "").trim();
+          const finalRouteName = rNameInput || "Yakıt Rotası";
+          window.activeRoute = {
+            name: finalRouteName,
+            startDate: dateVal,
+            startKm: isFullVal ? 0 : kmVal,
+            startDash: isFullVal ? 0 : (dashL100Val || 0),
+            accumulatedKm: 0,
+            accumulatedLit: 0
+          };
+        }
+
         persistAllData(); closeModal("fuelModal"); populateYearSelector(); renderAll();
       } catch(err) { alert(err.message); }
     }
@@ -2090,7 +2169,6 @@ function editCompletedRoute(routeId) {
       });
     }
 
-    // --- KART AKORDİYON VE BONUS MODÜLÜ ---
     function toggleCardAccordion() {
       const body = document.getElementById("cardAccordionBody"); const icon = document.getElementById("cardAccordionIcon");
       if (!body) return; const isHidden = body.classList.toggle("hidden");
@@ -2318,7 +2396,7 @@ function editCompletedRoute(routeId) {
       document.getElementById("btnReturnToMonthlyKm").classList.add("hidden"); document.getElementById("landscapeChartIcon").innerText = "📈"; document.getElementById("landscapeChartTitle").innerText = "Aylık Yol Analizi (Tam Ekran)"; document.getElementById("landscapeChartSubText").innerText = "Sütuna tıklayarak o ayın gün analizini açın";
       const fF = window.fuels.filter(f => selectedYear === "all" || (f.date && f.date.startsWith(selectedYear))); const m = processMonthlyData(calculateFuelMetrics(fF)); const ctx = document.getElementById("landscapeCanvas").getContext("2d"); const gC = getThemeGridColor(); const tC = getThemeTextColor();
       if (charts.landscape) { charts.landscape.destroy(); charts.landscape = null; }
-      charts.landscape = new Chart(ctx, { type: 'bar', data: { labels: m.labels.length ? m.labels.map(l => l + ". Ay") : ["-"], datasets: [{ label: 'Yol (km)', data: m.kmData.length ? m.kmData : [0], backgroundColor: '#3b82f6', borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: false, onClick: (evt, elements) => { if (elements.length > 0) { const index = elements[0].index; const selectedKey = m.fullKeys[index]; renderLandscapeDailyKm(selectedKey); } }, scales: { x: { grid: { color: gC }, ticks: { color: tC } }, y: { grid: { color: gC }, ticks: { color: tC } } } } });
+      charts.landscape = new Chart(ctx, { type: 'bar', data: { labels: m.labels.length ? m.labels : ["-"], datasets: [{ label: 'Yol (km)', data: m.kmData.length ? m.kmData : [0], backgroundColor: '#3b82f6', borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: false, onClick: (evt, elements) => { if (elements.length > 0) { const index = elements[0].index; const selectedKey = m.fullKeys[index]; renderLandscapeDailyKm(selectedKey); } }, scales: { x: { grid: { color: gC }, ticks: { color: tC } }, y: { grid: { color: gC }, ticks: { color: tC } } } } });
       const infoBox = document.getElementById("landscapeBottomInfoBox");
       infoBox.innerHTML = `<div class="text-[11px] font-black text-cyan-600 dark:text-cyan-400 mb-1">📅 Aylık Döküm Özeti (Detay İçin Tıklayın):</div><div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[10px]">${m.fullKeys.map((mk, idx) => `<div onclick="renderLandscapeDailyKm('${mk}')" class="p-2 theme-sub-box rounded-lg cursor-pointer hover:border-cyan-500 transition-colors"><span class="custom-muted block font-bold">${mk}</span><b class="text-blue-600 dark:text-blue-400 font-black">${m.kmData[idx].toLocaleString('tr-TR')} KM</b></div>`).join('')}</div>`;
     }
@@ -2346,14 +2424,14 @@ function editCompletedRoute(routeId) {
 
     // --- RENDER ALL & INIT ---
     function persistAllData() {
-  localStorage.setItem(STORAGE_PREFIX + "fuels", JSON.stringify(window.fuels || []));
-  localStorage.setItem(STORAGE_PREFIX + "odologs", JSON.stringify(window.odoLogs || []));
-  localStorage.setItem(STORAGE_PREFIX + "expenses", JSON.stringify(window.expenses || []));
-  localStorage.setItem(STORAGE_PREFIX + "tires", JSON.stringify(window.tireData || window.defaultTireData));
-  localStorage.setItem(STORAGE_PREFIX + "profile", JSON.stringify(typeof carProfile !== 'undefined' ? carProfile : defaultProfile));
-  localStorage.setItem(STORAGE_PREFIX + "active_route", JSON.stringify(window.activeRoute || null));
-  localStorage.setItem(STORAGE_PREFIX + "completed_routes", JSON.stringify(window.completedRoutes || []));
-}
+      localStorage.setItem(STORAGE_PREFIX + "fuels", JSON.stringify(window.fuels || []));
+      localStorage.setItem(STORAGE_PREFIX + "odologs", JSON.stringify(window.odoLogs || []));
+      localStorage.setItem(STORAGE_PREFIX + "expenses", JSON.stringify(window.expenses || []));
+      localStorage.setItem(STORAGE_PREFIX + "tires", JSON.stringify(window.tireData || window.defaultTireData));
+      localStorage.setItem(STORAGE_PREFIX + "profile", JSON.stringify(typeof carProfile !== 'undefined' ? carProfile : defaultProfile));
+      localStorage.setItem(STORAGE_PREFIX + "active_route", JSON.stringify(window.activeRoute || null));
+      localStorage.setItem(STORAGE_PREFIX + "completed_routes", JSON.stringify(window.completedRoutes || []));
+    }
 
     function renderAll() {
       applyCarProfile(); populatePaymentSelects();
@@ -2396,7 +2474,6 @@ function editCompletedRoute(routeId) {
       renderCompletedRoutes();
     }
 
-    // GÜVENLİ BAŞLATICI (Sadece her şey yüklendikten sonra çalışır)
     window.addEventListener('DOMContentLoaded', () => {
       initIndexedDB().then(() => {
         applyCurrentTheme();
