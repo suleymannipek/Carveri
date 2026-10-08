@@ -30,6 +30,7 @@
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   
   <style>
     :root {
@@ -324,7 +325,7 @@
         <div onclick="openCustomFuelFilterModal()" class="custom-card p-3.5 shadow relative overflow-hidden group hover:border-amber-500/50 transition-all cursor-pointer">
           <div class="flex justify-between items-start">
             <div class="flex items-center gap-1.5">
-              <span class="text-[9px] font-extrabold custom-muted uppercase tracking-wider">YAKYT GİDERİ</span>
+              <span class="text-[9px] font-extrabold custom-muted uppercase tracking-wider">YAKIT GİDERİ</span>
               <span class="text-[8px] theme-badge-amber font-black px-1.5 py-0.5 rounded shadow-sm">Filtrele 🔍</span>
             </div>
             <span class="w-6 h-6 rounded-lg theme-badge-amber flex items-center justify-center text-[11px] shadow-sm font-bold">⛽</span>
@@ -343,14 +344,14 @@
           <div class="mt-1.5">
             <span id="statTotalOwnership" class="text-2xl font-black text-pink-600 dark:text-pink-400 tracking-tight">₺0</span>
           </div>
-          <p class="text-[10px] custom-muted mt-1 font-semibold">Yakıt + Servis + Sabit</p>
+          <p id="statFixedExpense" class="text-[10px] custom-muted mt-1 font-semibold">Yakıt + Servis + Sabit</p>
         </div>
       </div>
 
       <div class="custom-card p-3.5 shadow flex justify-between items-center text-xs">
         <div>
           <span class="text-[9px] font-black uppercase tracking-wider text-blue-600 dark:text-blue-400">YILLIK SABİT GİDER</span>
-          <div id="statFixedExpense" class="text-sm font-black mt-1">₺0</div>
+          <div id="statFixedExpenseVal" class="text-sm font-black mt-1">₺0</div>
           <span class="text-[9px] custom-muted font-medium">MTV, Sigorta, Kasko, Muayene</span>
         </div>
         <div class="text-right">
@@ -645,12 +646,12 @@
         </button>
 
         <div class="grid grid-cols-2 gap-2.5 pt-1">
-          <button onclick="exportJSON()" class="p-3 bg-blue-600 hover:bg-blue-500 rounded-xl text-[11px] font-black text-white shadow">💾 JSON Yedek (Fişler Dahil)</button>
+          <button onclick="exportBackupZip()" class="p-3 bg-blue-600 hover:bg-blue-500 rounded-xl text-[11px] font-black text-white shadow">📦 ZIP Yedek (Fişler Dahil)</button>
           <button onclick="exportCSV()" class="p-3 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-[11px] font-black text-white shadow">📊 Excel İndir</button>
         </div>
         <div class="pt-2 border-t border-slate-700/30">
-          <label class="block text-[11px] custom-muted mb-1 font-bold">Eski veya Yeni Yedekten Yükle (.JSON):</label>
-          <input type="file" accept=".json" onchange="importJSON(event)" class="text-[11px] custom-muted file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:bg-slate-700 file:text-white file:font-bold" />
+          <label class="block text-[11px] custom-muted mb-1 font-bold">Yedekten Geri Yükle (.ZIP veya .JSON):</label>
+          <input type="file" accept=".zip,.json" onchange="importBackupFile(event)" class="text-[11px] custom-muted file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:bg-slate-700 file:text-white file:font-bold" />
         </div>
       </div>
 
@@ -1419,36 +1420,162 @@
       alert("Araç profili güncellendi!");
     }
 
-    async function exportJSON() {
+    // --- YENİ ZIP TABANLI YEDEKLEME SİSTEMİ ---
+    async function exportBackupZip() {
       try {
+        if (typeof JSZip === "undefined") {
+          return alert("JSZip kütüphanesi yüklenemedi. Lütfen internet bağlantınızı kontrol edin.");
+        }
+
         const nowStr = new Date().toLocaleString('tr-TR');
         lastBackupTimestamp = nowStr;
         localStorage.setItem(STORAGE_PREFIX + "last_backup", nowStr);
         const badge = document.getElementById("lastBackupTimeBadge");
         if (badge) badge.innerText = `Son Yedek: ${nowStr}`;
 
-        const allDocs = await getAllDocsFromDB();
+        const zip = new JSZip();
+
+        // 1. Veri Yapısı (Saf JSON)
         const safeFuels = (window.fuels && Array.isArray(window.fuels)) ? window.fuels : [];
         const safeOdoLogs = (window.odoLogs && Array.isArray(window.odoLogs)) ? window.odoLogs : [];
         const safeExpenses = (window.expenses && Array.isArray(window.expenses)) ? window.expenses : [];
-        const safeTires = window.tireData || { activeSet: "summer", summer: {}, winter: {} };
+        const safeTires = window.tireData || window.defaultTireData;
         const safeProfile = window.carProfile || defaultProfile;
         const safeRoute = window.activeRoute || null;
+        const safeRoutesList = window.completedRoutes || [];
         const safePaymentMethods = window.customPaymentMethods || ["Nakit"];
         const safeCardRewards = window.cardRewards || {};
 
-        const backupData = { fuels: safeFuels, odoLogs: safeOdoLogs, expenses: safeExpenses, tires: safeTires, profile: safeProfile, activeRoute: safeRoute, paymentMethods: safePaymentMethods, cardRewards: safeCardRewards, documents: allDocs };
-        const jsonString = JSON.stringify(backupData, null, 2);
-        const blob = new Blob([jsonString], { type: "application/json;charset=utf-8;" });
+        const dataJson = {
+          fuels: safeFuels,
+          odoLogs: safeOdoLogs,
+          expenses: safeExpenses,
+          tires: safeTires,
+          profile: safeProfile,
+          activeRoute: safeRoute,
+          completedRoutes: safeRoutesList,
+          paymentMethods: safePaymentMethods,
+          cardRewards: safeCardRewards,
+          exportedAt: getNowLocalISO()
+        };
+
+        zip.file("veriler.json", JSON.stringify(dataJson, null, 2));
+
+        // 2. Belgeler Klasörü (Ham İkili Dosyalar)
+        const docsFolder = zip.folder("belgeler");
+        const allDocs = await getAllDocsFromDB();
+        
+        for (const [docId, dataUri] of Object.entries(allDocs)) {
+          if (!dataUri) continue;
+          const commaIdx = dataUri.indexOf(",");
+          if (commaIdx === -1) continue;
+          
+          const metaPart = dataUri.substring(0, commaIdx);
+          const base64Content = dataUri.substring(commaIdx + 1);
+
+          let ext = ".jpg";
+          if (metaPart.includes("pdf")) ext = ".pdf";
+          else if (metaPart.includes("png")) ext = ".png";
+          else if (metaPart.includes("webp")) ext = ".webp";
+
+          docsFolder.file(`${docId}${ext}`, base64Content, { base64: true });
+        }
+
+        const blob = await zip.generateAsync({ type: "blob" });
         const downloadUrl = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = downloadUrl;
-        a.download = `Carveri_Yedek_${new Date().toISOString().split("T")[0]}.json`;
+        a.download = `Carveri_Yedek_${new Date().toISOString().split("T")[0]}.zip`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         setTimeout(() => URL.revokeObjectURL(downloadUrl), 2000);
-      } catch (err) { alert("Yedekleme hatası: " + err.message); }
+
+      } catch (err) {
+        alert("ZIP yedekleme hatası: " + err.message);
+      }
+    }
+
+    async function importBackupFile(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      try {
+        if (file.name.endsWith(".zip")) {
+          // --- ZIP GERİ YÜKLEME ---
+          if (typeof JSZip === "undefined") return alert("JSZip kütüphanesi yüklenemedi.");
+          
+          const zip = await JSZip.loadAsync(file);
+          const jsonFile = zip.file("veriler.json");
+          if (!jsonFile) return alert("Hata: ZIP içinde 'veriler.json' bulunamadı.");
+
+          const jsonText = await jsonFile.async("text");
+          const p = JSON.parse(jsonText);
+
+          window.fuels = Array.isArray(p.fuels) ? p.fuels : [];
+          window.odoLogs = Array.isArray(p.odoLogs) ? p.odoLogs : [];
+          window.expenses = Array.isArray(p.expenses) ? p.expenses : [];
+          window.tireData = p.tires || window.defaultTireData;
+          window.carProfile = p.profile || defaultProfile;
+          window.activeRoute = p.activeRoute || null;
+          window.completedRoutes = Array.isArray(p.completedRoutes) ? p.completedRoutes : [];
+          window.customPaymentMethods = Array.isArray(p.paymentMethods) ? p.paymentMethods : ["Nakit", "Bonus", "Maximum", "World"];
+          window.cardRewards = p.cardRewards || {};
+
+          // Belgeleri IndexedDB'ye tekrar yaz
+          const docEntries = Object.keys(zip.files).filter(k => k.startsWith("belgeler/") && !zip.files[k].dir);
+          for (const path of docEntries) {
+            const fileName = path.split("/").pop();
+            const lastDot = fileName.lastIndexOf(".");
+            const docId = lastDot !== -1 ? fileName.substring(0, lastDot) : fileName;
+            const ext = lastDot !== -1 ? fileName.substring(lastDot).toLowerCase() : "";
+
+            let mime = "image/jpeg";
+            if (ext === ".pdf") mime = "application/pdf";
+            else if (ext === ".png") mime = "image/png";
+            else if (ext === ".webp") mime = "image/webp";
+
+            const b64 = await zip.file(path).async("base64");
+            const dataUri = `data:${mime};base64,${b64}`;
+            await saveDocToDB(docId, dataUri);
+          }
+
+          persistAllData(); persistPaymentMethods(); populateYearSelector(); renderTiresTab(); renderAll();
+          alert("✓ ZIP yedeği başarıyla geri yüklendi!");
+          e.target.value = "";
+
+        } else if (file.name.endsWith(".json")) {
+          // --- ESKİ JSON YEDEKLERİ İLE GERİYE DÖNÜK UYUMLULUK ---
+          const reader = new FileReader();
+          reader.onload = async (ev) => {
+            try {
+              let rawText = ev.target.result.trim();
+              if (rawText.charCodeAt(0) === 0xFEFF) rawText = rawText.slice(1);
+              let p = JSON.parse(rawText);
+              window.fuels = Array.isArray(p.fuels) ? p.fuels : [];
+              window.odoLogs = Array.isArray(p.odoLogs) ? p.odoLogs : [];
+              window.expenses = Array.isArray(p.expenses) ? p.expenses : [];
+              window.tireData = p.tires || window.defaultTireData;
+              window.carProfile = p.profile || defaultProfile;
+              window.activeRoute = p.activeRoute || null;
+              window.completedRoutes = Array.isArray(p.completedRoutes) ? p.completedRoutes : [];
+              window.customPaymentMethods = Array.isArray(p.paymentMethods) ? p.paymentMethods : ["Nakit", "Bonus", "Maximum", "World"];
+              window.cardRewards = p.cardRewards || {};
+              if (p.documents && typeof p.documents === 'object') {
+                for (let [dId, dUri] of Object.entries(p.documents)) { if (dUri) await saveDocToDB(dId, dUri); }
+              }
+              persistAllData(); persistPaymentMethods(); populateYearSelector(); renderTiresTab(); renderAll();
+              alert("✓ JSON yedeği başarıyla geri yüklendi!");
+              e.target.value = "";
+            } catch (err) { alert("JSON Yükleme Hatası:\n" + err.message); }
+          };
+          reader.readAsText(file, "UTF-8");
+        } else {
+          alert("Lütfen geçerli bir .zip veya .json dosyası seçin.");
+        }
+      } catch (err) {
+        alert("Yedek yükleme hatası: " + err.message);
+      }
     }
 
     function exportCSV() {
@@ -1471,50 +1598,10 @@
       } catch (err) { alert("CSV dışa aktarma hatası: " + err.message); }
     }
 
-    async function importJSON(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = async (ev) => {
-        try {
-          let rawText = ev.target.result.trim();
-          if (rawText.charCodeAt(0) === 0xFEFF) rawText = rawText.slice(1);
-          let p = JSON.parse(rawText);
-          window.fuels = Array.isArray(p.fuels) ? p.fuels : [];
-          window.odoLogs = Array.isArray(p.odoLogs) ? p.odoLogs : [];
-          window.expenses = Array.isArray(p.expenses) ? p.expenses : [];
-          window.tireData = p.tires || window.defaultTireData;
-          window.carProfile = p.profile || defaultProfile;
-          window.activeRoute = p.activeRoute || null;
-          window.customPaymentMethods = Array.isArray(p.paymentMethods) ? p.paymentMethods : ["Nakit", "Bonus", "Maximum", "World"];
-          window.cardRewards = p.cardRewards || {};
-          if (p.documents && typeof p.documents === 'object') {
-            for (let [dId, dUri] of Object.entries(p.documents)) { if (dUri) await saveDocToDB(dId, dUri); }
-          }
-          for (let f of window.fuels) {
-            if (f.docData && !f.docId) {
-              const nid = "doc_fuel_" + f.id + "_" + Math.random().toString(36).substring(2, 6);
-              await saveDocToDB(nid, f.docData); f.docId = nid; delete f.docData;
-            }
-          }
-          for (let exp of window.expenses) {
-            if (exp.docData && !exp.docId) {
-              const nid = "doc_exp_" + exp.id + "_" + Math.random().toString(36).substring(2, 6);
-              await saveDocToDB(nid, exp.docData); exp.docId = nid; delete exp.docData;
-            }
-          }
-          persistAllData(); persistPaymentMethods(); populateYearSelector(); renderTiresTab(); renderAll();
-          alert("✓ Yedek başarıyla yüklendi!"); e.target.value = "";
-        } catch (err) { alert("Yükleme Hatası:\n" + err.message); }
-      };
-      reader.onerror = () => alert("Dosya okunamadı. Lütfen dosyayı tekrar seçin.");
-      reader.readAsText(file, "UTF-8");
-    }
-
     function wipeAllDataSecurely() {
       if ((document.getElementById("wipeConfirmInput").value || "").trim().toUpperCase() !== "EVET") return alert("Silmek için EVET yazın.");
       if (confirm("Tüm veriler kalıcı olarak silinecek. Emin misiniz?")) {
-        window.fuels = []; window.odoLogs = []; window.expenses = []; window.activeRoute = null;
+        window.fuels = []; window.odoLogs = []; window.expenses = []; window.activeRoute = null; window.completedRoutes = [];
         window.tireData = window.defaultTireData; carProfile = defaultProfile;
         window.customPaymentMethods = ["Nakit"]; window.cardRewards = {};
         persistAllData(); persistPaymentMethods(); renderAll();
@@ -1709,13 +1796,11 @@
         return alert(`Hata: Girilen toplam KM (${kmTotal}), rota başındaki sayaçtan (${km1} km) küçük olamaz.`);
       }
 
-      // Mevcut etabın net mesafesi
       const kmCurrentStage = kmTotal - km1;
       const lit1 = (km1 * ort1) / 100;
       const litTotal = (kmTotal * ortTotal) / 100;
       const litCurrentStage = Math.max(0, litTotal - lit1);
 
-      // Varsa önceki etaplardan biriken yakıt ve mesafe
       const previousLit = parseFloat(window.activeRoute.accumulatedLit) || 0;
       const previousKm = parseFloat(window.activeRoute.accumulatedKm) || 0;
 
@@ -1726,7 +1811,6 @@
         return alert("Hata: Rotada katedilen net mesafe 0'dan büyük olmalıdır.");
       }
 
-      // 0.00 L/100km tüketim desteği
       const ortRota = ((totalRouteLit / totalRouteKm) * 100).toFixed(2);
 
       if (!Array.isArray(window.completedRoutes)) window.completedRoutes = [];
@@ -2396,7 +2480,7 @@
       document.getElementById("btnReturnToMonthlyKm").classList.add("hidden"); document.getElementById("landscapeChartIcon").innerText = "📈"; document.getElementById("landscapeChartTitle").innerText = "Aylık Yol Analizi (Tam Ekran)"; document.getElementById("landscapeChartSubText").innerText = "Sütuna tıklayarak o ayın gün analizini açın";
       const fF = window.fuels.filter(f => selectedYear === "all" || (f.date && f.date.startsWith(selectedYear))); const m = processMonthlyData(calculateFuelMetrics(fF)); const ctx = document.getElementById("landscapeCanvas").getContext("2d"); const gC = getThemeGridColor(); const tC = getThemeTextColor();
       if (charts.landscape) { charts.landscape.destroy(); charts.landscape = null; }
-      charts.landscape = new Chart(ctx, { type: 'bar', data: { labels: m.labels.length ? m.labels : ["-"], datasets: [{ label: 'Yol (km)', data: m.kmData.length ? m.kmData : [0], backgroundColor: '#3b82f6', borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: false, onClick: (evt, elements) => { if (elements.length > 0) { const index = elements[0].index; const selectedKey = m.fullKeys[index]; renderLandscapeDailyKm(selectedKey); } }, scales: { x: { grid: { color: gC }, ticks: { color: tC } }, y: { grid: { color: gC }, ticks: { color: tC } } } } });
+      charts.landscape = new Chart(ctx, { type: 'bar', data: { labels: m.labels.length ? m.labels.map(l => l + ". Ay") : ["-"], datasets: [{ label: 'Yol (km)', data: m.kmData.length ? m.kmData : [0], backgroundColor: '#3b82f6', borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: false, onClick: (evt, elements) => { if (elements.length > 0) { const index = elements[0].index; const selectedKey = m.fullKeys[index]; renderLandscapeDailyKm(selectedKey); } }, scales: { x: { grid: { color: gC }, ticks: { color: tC } }, y: { grid: { color: gC }, ticks: { color: tC } } } } });
       const infoBox = document.getElementById("landscapeBottomInfoBox");
       infoBox.innerHTML = `<div class="text-[11px] font-black text-cyan-600 dark:text-cyan-400 mb-1">📅 Aylık Döküm Özeti (Detay İçin Tıklayın):</div><div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[10px]">${m.fullKeys.map((mk, idx) => `<div onclick="renderLandscapeDailyKm('${mk}')" class="p-2 theme-sub-box rounded-lg cursor-pointer hover:border-cyan-500 transition-colors"><span class="custom-muted block font-bold">${mk}</span><b class="text-blue-600 dark:text-blue-400 font-black">${m.kmData[idx].toLocaleString('tr-TR')} KM</b></div>`).join('')}</div>`;
     }
@@ -2449,7 +2533,8 @@
       document.getElementById("statFuelExpense").innerText = `₺${Math.round(tfc).toLocaleString('tr-TR')}`;
       document.getElementById("statFuelVolume").innerText = `Hacim: ${tl.toFixed(1)} L`;
       document.getElementById("statTotalOwnership").innerText = `₺${Math.round(fc + vc).toLocaleString('tr-TR')}`;
-      document.getElementById("statFixedExpense").innerText = `₺${Math.round(fc).toLocaleString('tr-TR')}`;
+      const fixEl = document.getElementById("statFixedExpenseVal");
+      if (fixEl) fixEl.innerText = `₺${Math.round(fc).toLocaleString('tr-TR')}`;
       document.getElementById("statVariableExpense").innerText = `₺${Math.round(vc).toLocaleString('tr-TR')}`;
 
       const sbd = cf.slice().sort((a, b) => new Date(a.date) - new Date(b.date));
