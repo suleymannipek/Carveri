@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>Carveri</title>
+  <title>Carveri Pro</title>
   
   <meta id="metaThemeColor" name="theme-color" content="#0b1329" />
   <meta name="mobile-web-app-capable" content="yes" />
@@ -348,6 +348,31 @@
         </div>
       </div>
 
+      <!-- YOL BİLGİSAYARI SAPMA VE KULLANIM TEMPOSU KARTLARI -->
+      <div class="grid grid-cols-2 gap-2.5">
+        <div class="custom-card p-3 shadow border-blue-900/30">
+          <div class="flex justify-between items-start">
+            <span class="text-[9px] font-extrabold text-blue-500 uppercase tracking-wider">YOL BİLG. FARKI</span>
+            <span class="text-xs">📊</span>
+          </div>
+          <div class="mt-1">
+            <span id="statDashBiasVal" class="text-lg font-black text-blue-400 tracking-tight">--</span>
+          </div>
+          <p id="statDashBiasDesc" class="text-[9px] custom-muted mt-0.5 font-semibold leading-tight">Yol bilgisayarı sapması</p>
+        </div>
+
+        <div class="custom-card p-3 shadow border-emerald-900/30">
+          <div class="flex justify-between items-start">
+            <span class="text-[9px] font-extrabold text-emerald-500 uppercase tracking-wider">KULLANIM TEMPOSU</span>
+            <span class="text-xs">🚀</span>
+          </div>
+          <div class="mt-1">
+            <span id="statUsagePaceVal" class="text-lg font-black text-emerald-400 tracking-tight">-- km/ay</span>
+          </div>
+          <p id="statUsageProjDesc" class="text-[9px] custom-muted mt-0.5 font-semibold leading-tight">Yıl sonu projeksiyonu</p>
+        </div>
+      </div>
+
       <div class="custom-card p-3.5 shadow flex justify-between items-center text-xs">
         <div>
           <span class="text-[9px] font-black uppercase tracking-wider text-blue-600 dark:text-blue-400">YILLIK SABİT GİDER</span>
@@ -580,7 +605,7 @@
       </div>
     </div>
 
-    <!-- 5. SEKME: YEDEK & AYARLAR -->
+    <!-- 5. SEKME: YEDEK, NOTLAR & AYARLAR -->
     <div id="tabBackup" class="space-y-3.5 hidden">
       <div class="custom-card overflow-hidden shadow">
         <button onclick="toggleProfileAccordion()" class="w-full p-3.5 flex justify-between items-center text-left hover:bg-slate-800/10 transition-all">
@@ -619,6 +644,47 @@
               <input type="number" id="cfgLpgTank" placeholder="örn: 40" class="w-full mt-1 custom-input border p-2.5 rounded-xl outline-none text-xs font-black text-amber-600 dark:text-amber-400" />
             </div>
             <button onclick="saveCarProfile()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-black rounded-xl text-xs shadow-md">Araç Bilgilerini Kaydet</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ARAÇ VE UYGULAMA NOTLARI -->
+      <div class="custom-card p-4 shadow space-y-2.5 border-cyan-900/30">
+        <div class="flex justify-between items-center">
+          <h3 class="text-xs font-black flex items-center gap-1.5 text-cyan-600 dark:text-cyan-400">
+            <span>📝</span> Araç & Not Defteri
+          </h3>
+          <span id="notesSavedBadge" class="text-[9px] theme-badge-green px-2 py-0.5 rounded font-bold hidden">Otomatik Kaydedildi</span>
+        </div>
+        <textarea id="appVehicleNotes" oninput="saveAppNotesLive()" placeholder="Ruhsat, şasi, radyo kodu, servis uyarıları, yağ tipi veya diğer özel notlarınız buraya yazılabilir. ZIP yedeğinize otomatik dahil edilir." rows="4" class="w-full text-xs p-2.5 rounded-xl custom-input border outline-none font-medium resize-none shadow-inner"></textarea>
+      </div>
+
+      <!-- GÜNCELLEMELER VE SÜRÜM GEÇMİŞİ -->
+      <div class="custom-card overflow-hidden shadow border-slate-700/50">
+        <button onclick="toggleUpdatesAccordion()" class="w-full p-3.5 flex justify-between items-center text-left hover:bg-slate-800/10 transition-all">
+          <div class="flex items-center gap-2.5">
+            <span class="text-lg text-emerald-500">✨</span>
+            <div>
+              <h4 class="text-xs font-black">Güncellemeler & Sürüm Notları</h4>
+              <p class="text-[10px] custom-muted font-semibold">v2.1 Yenilikleri ve Detaylar</p>
+            </div>
+          </div>
+          <span id="updatesAccordionIcon" class="text-[10px] custom-muted font-bold px-2.5 py-1 rounded-lg custom-card border">▼ Göster</span>
+        </button>
+
+        <div id="updatesAccordionBody" class="hidden p-3.5 pt-0 space-y-2.5 border-t border-slate-700/40 text-[11px]">
+          <div class="p-2.5 rounded-xl theme-sub-box space-y-1.5 mt-2">
+            <div class="flex justify-between items-center">
+              <span class="font-black text-cyan-500 text-xs">Sürüm 2.1 (En Son)</span>
+              <span class="text-[9px] font-bold theme-badge-cyan px-2 py-0.5 rounded">Ekim 2026</span>
+            </div>
+            <ul class="list-disc list-inside space-y-1 text-[10px] custom-muted font-medium">
+              <li><b>Yol Bilgisayarı Fark Analizi:</b> Pompa tüketimi ile yol bilgisayarı sapması hesaplanıp oransal iyimserlik/kötümserlik raporlandı.</li>
+              <li><b>Yıllık Kullanım Temposu:</b> Aylık ortalama kilometre temposu ve yıl sonu tahmini sayaç projeksiyonu eklendi.</li>
+              <li><b>Akıllı Depo Hesaplama:</b> KM girişinde son full depo, aradaki kısmi yakıtlar ve tüketim baz alınarak kalan depo litresi/yüzdesi otomatik hesaplanıp forma aktarılıyor.</li>
+              <li><b>Profil Yedekleme Düzeltmesi:</b> ZIP ve JSON yedeklerinde araç modeli, adı ve depo hacmi eksiksiz yedekleniyor.</li>
+              <li><b>Özel Not Defteri:</b> Araçla ilgili serbest metin notları eklendi ve yedeklemelere dahil edildi.</li>
+            </ul>
           </div>
         </div>
       </div>
@@ -682,7 +748,7 @@
         <div class="grid grid-cols-2 gap-2.5">
           <div>
             <label class="custom-muted text-[10px] font-bold">Mevcut Kilometre (ODO)</label>
-            <input type="number" id="mOdoInput" required oninput="checkOdoAnomalyLive(); calculateTripFromOdo()" placeholder="örn: 12500" class="w-full mt-1 custom-input border p-2.5 rounded-xl outline-none font-black text-base text-cyan-600 dark:text-cyan-400" />
+            <input type="number" id="mOdoInput" required oninput="checkOdoAnomalyLive(); calculateTripFromOdo(); triggerAutoTankCalculation();" placeholder="örn: 12500" class="w-full mt-1 custom-input border p-2.5 rounded-xl outline-none font-black text-base text-cyan-600 dark:text-cyan-400" />
           </div>
           <div>
             <label class="custom-muted text-[10px] font-bold">Gidilen Yol (Trip KM)</label>
@@ -694,18 +760,21 @@
         </div>
         <div>
           <label class="custom-muted text-[10px] font-bold">Yol Bilgisayarı Ort. Tüketim (L/100km)</label>
-          <input type="number" step="0.1" id="mOdoDashboardL100" placeholder="örn: 7.2" class="w-full mt-1 custom-input border p-2.5 rounded-xl outline-none font-black text-amber-600 dark:text-amber-400 text-sm" />
+          <input type="number" step="0.1" id="mOdoDashboardL100" oninput="triggerAutoTankCalculation()" placeholder="örn: 7.2" class="w-full mt-1 custom-input border p-2.5 rounded-xl outline-none font-black text-amber-600 dark:text-amber-400 text-sm" />
         </div>
         <div class="p-3 rounded-xl theme-sub-box space-y-2">
-          <label class="custom-muted text-[10px] font-bold block">Göstergedeki Kalan Yakıt (Yüzde veya Litre)</label>
+          <div class="flex justify-between items-center">
+            <label class="custom-muted text-[10px] font-bold block">Göstergedeki Kalan Yakıt (Yüzde / Litre)</label>
+            <span id="odoAutoCalcBadge" class="text-[8px] theme-badge-cyan px-1.5 py-0.5 rounded font-black hidden">🤖 Otomatik Hesaplandı</span>
+          </div>
           <div class="grid grid-cols-2 gap-2">
             <div>
               <span class="text-[9px] custom-muted block mb-0.5">Kalan Yüzde (%)</span>
-              <input type="number" id="mOdoFuelPercent" min="0" max="100" placeholder="Örn: 50" oninput="syncLitersFromPercent(this.value)" class="w-full custom-input border p-2 rounded-xl outline-none font-black text-emerald-600 dark:text-emerald-400 text-xs" />
+              <input type="number" id="mOdoFuelPercent" min="0" max="100" placeholder="Örn: 50" oninput="userEditedTankManually = true; syncLitersFromPercent(this.value)" class="w-full custom-input border p-2 rounded-xl outline-none font-black text-emerald-600 dark:text-emerald-400 text-xs" />
             </div>
             <div>
               <span class="text-[9px] custom-muted block mb-0.5">Kalan Litre (L)</span>
-              <input type="number" step="0.1" id="mOdoFuelLiters" placeholder="Örn: 25.0" oninput="syncPercentFromLiters(this.value)" class="w-full custom-input border p-2 rounded-xl outline-none font-black text-emerald-600 dark:text-emerald-400 text-xs" />
+              <input type="number" step="0.1" id="mOdoFuelLiters" placeholder="Örn: 25.0" oninput="userEditedTankManually = true; syncPercentFromLiters(this.value)" class="w-full custom-input border p-2 rounded-xl outline-none font-black text-emerald-600 dark:text-emerald-400 text-xs" />
             </div>
           </div>
         </div>
@@ -1223,7 +1292,8 @@
     }
 
     const defaultProfile = { name: "Carveri", desc: "", fuelTank: 50, hasLpg: false, lpgTank: 40 };
-    let carProfile = getPersistedData("profile", ["ototakip_profile", "oto_profile_v2"], defaultProfile);
+    window.carProfile = getPersistedData("profile", ["ototakip_profile", "oto_profile_v2"], defaultProfile);
+    window.vehicleNotes = localStorage.getItem(STORAGE_PREFIX + "vehicle_notes") || "";
     let lastBackupTimestamp = localStorage.getItem(STORAGE_PREFIX + "last_backup") || null;
 
     const themeMeta = { 
@@ -1385,13 +1455,18 @@
 
     function applyCarProfile() {
       const liveKm = getLatestVehicleKm();
-      document.getElementById("headerCarName").innerText = carProfile.name || "Carveri";
-      document.getElementById("headerCarDesc").innerText = `${carProfile.desc || 'Model'} • ${liveKm > 0 ? liveKm.toLocaleString('tr-TR') + ' KM' : 'KM Yok'}`;
-      document.getElementById("cfgCarName").value = carProfile.name || "";
-      document.getElementById("cfgCarDesc").value = carProfile.desc || "";
-      document.getElementById("cfgFuelTank").value = carProfile.fuelTank || 50;
-      document.getElementById("cfgHasLpg").checked = !!carProfile.hasLpg;
-      document.getElementById("cfgLpgTank").value = carProfile.lpgTank || 40;
+      document.getElementById("headerCarName").innerText = window.carProfile.name || "Carveri";
+      document.getElementById("headerCarDesc").innerText = `${window.carProfile.desc || 'Model'} • ${liveKm > 0 ? liveKm.toLocaleString('tr-TR') + ' KM' : 'KM Yok'}`;
+      document.getElementById("cfgCarName").value = window.carProfile.name || "";
+      document.getElementById("cfgCarDesc").value = window.carProfile.desc || "";
+      document.getElementById("cfgFuelTank").value = window.carProfile.fuelTank || 50;
+      document.getElementById("cfgHasLpg").checked = !!window.carProfile.hasLpg;
+      document.getElementById("cfgLpgTank").value = window.carProfile.lpgTank || 40;
+      
+      const notesEl = document.getElementById("appVehicleNotes");
+      if (notesEl && notesEl.value !== window.vehicleNotes) {
+        notesEl.value = window.vehicleNotes || "";
+      }
       toggleLpgConfigField();
       if (typeof updateLpgVisibilityInApp === 'function') updateLpgVisibilityInApp();
     }
@@ -1406,7 +1481,7 @@
     }
 
     function saveCarProfile() {
-      carProfile = {
+      window.carProfile = {
         name: document.getElementById("cfgCarName").value.trim() || "Carveri",
         desc: document.getElementById("cfgCarDesc").value.trim(),
         fuelTank: parseFloat(document.getElementById("cfgFuelTank").value) || 50,
@@ -1418,6 +1493,38 @@
       renderAll();
       toggleProfileAccordion();
       alert("Araç profili güncellendi!");
+    }
+
+    function toggleUpdatesAccordion() {
+      const b = document.getElementById("updatesAccordionBody");
+      const icon = document.getElementById("updatesAccordionIcon");
+      if (!b) return;
+      b.classList.toggle("hidden");
+      if (!b.classList.contains("hidden")) {
+        b.style.display = "block";
+        if (icon) icon.innerText = "▲ Gizle";
+      } else {
+        b.style.display = "none";
+        if (icon) icon.innerText = "▼ Göster";
+      }
+    }
+
+    let notesTimeout = null;
+    function saveAppNotesLive() {
+      const el = document.getElementById("appVehicleNotes");
+      if (!el) return;
+      window.vehicleNotes = el.value;
+      localStorage.setItem(STORAGE_PREFIX + "vehicle_notes", window.vehicleNotes);
+      const badge = document.getElementById("notesSavedBadge");
+      if (badge) {
+        badge.classList.remove("hidden");
+        badge.style.display = "inline-block";
+        clearTimeout(notesTimeout);
+        notesTimeout = setTimeout(() => {
+          badge.classList.add("hidden");
+          badge.style.display = "none";
+        }, 1500);
+      }
     }
 
     // --- YENİ ZIP TABANLI YEDEKLEME SİSTEMİ ---
@@ -1441,6 +1548,7 @@
         const safeExpenses = (window.expenses && Array.isArray(window.expenses)) ? window.expenses : [];
         const safeTires = window.tireData || window.defaultTireData;
         const safeProfile = window.carProfile || defaultProfile;
+        const safeNotes = window.vehicleNotes || "";
         const safeRoute = window.activeRoute || null;
         const safeRoutesList = window.completedRoutes || [];
         const safePaymentMethods = window.customPaymentMethods || ["Nakit"];
@@ -1452,6 +1560,7 @@
           expenses: safeExpenses,
           tires: safeTires,
           profile: safeProfile,
+          notes: safeNotes,
           activeRoute: safeRoute,
           completedRoutes: safeRoutesList,
           paymentMethods: safePaymentMethods,
@@ -1517,6 +1626,7 @@
           window.expenses = Array.isArray(p.expenses) ? p.expenses : [];
           window.tireData = p.tires || window.defaultTireData;
           window.carProfile = p.profile || defaultProfile;
+          window.vehicleNotes = p.notes || "";
           window.activeRoute = p.activeRoute || null;
           window.completedRoutes = Array.isArray(p.completedRoutes) ? p.completedRoutes : [];
           window.customPaymentMethods = Array.isArray(p.paymentMethods) ? p.paymentMethods : ["Nakit", "Bonus", "Maximum", "World"];
@@ -1557,6 +1667,7 @@
               window.expenses = Array.isArray(p.expenses) ? p.expenses : [];
               window.tireData = p.tires || window.defaultTireData;
               window.carProfile = p.profile || defaultProfile;
+              window.vehicleNotes = p.notes || "";
               window.activeRoute = p.activeRoute || null;
               window.completedRoutes = Array.isArray(p.completedRoutes) ? p.completedRoutes : [];
               window.customPaymentMethods = Array.isArray(p.paymentMethods) ? p.paymentMethods : ["Nakit", "Bonus", "Maximum", "World"];
@@ -1602,7 +1713,7 @@
       if ((document.getElementById("wipeConfirmInput").value || "").trim().toUpperCase() !== "EVET") return alert("Silmek için EVET yazın.");
       if (confirm("Tüm veriler kalıcı olarak silinecek. Emin misiniz?")) {
         window.fuels = []; window.odoLogs = []; window.expenses = []; window.activeRoute = null; window.completedRoutes = [];
-        window.tireData = window.defaultTireData; carProfile = defaultProfile;
+        window.tireData = window.defaultTireData; window.carProfile = defaultProfile; window.vehicleNotes = "";
         window.customPaymentMethods = ["Nakit"]; window.cardRewards = {};
         persistAllData(); persistPaymentMethods(); renderAll();
         alert("Sıfırlandı!"); switchTab("dashboard");
@@ -1615,7 +1726,7 @@
     window.activeRoute = getPersistedData("active_route", [], null);
     window.completedRoutes = getPersistedData("completed_routes", [], []);
 
-    function updateLpgVisibilityInApp() { document.getElementById("fuelTypeWrapper").classList.toggle("hidden", !carProfile.hasLpg); }
+    function updateLpgVisibilityInApp() { document.getElementById("fuelTypeWrapper").classList.toggle("hidden", !window.carProfile.hasLpg); }
 
     function validateTimelineOdo(targetDateStr, targetKm, excludeId = null) {
       if (!targetDateStr || isNaN(targetKm) || targetKm <= 0) return { isValid: true };
@@ -1670,19 +1781,65 @@
       const tripVal = parseFloat(document.getElementById("mOdoTripInput").value);
       const sFuels = window.fuels.slice().sort((a,b) => new Date(a.date) - new Date(b.date) || a.km - b.km);
       const lastFuel = sFuels[sFuels.length - 1];
-      if (lastFuel && !isNaN(tripVal) && tripVal >= 0) { document.getElementById("mOdoInput").value = Math.round(lastFuel.km + tripVal); checkOdoAnomalyLive(); }
+      if (lastFuel && !isNaN(tripVal) && tripVal >= 0) { 
+        document.getElementById("mOdoInput").value = Math.round(lastFuel.km + tripVal); 
+        checkOdoAnomalyLive(); 
+        triggerAutoTankCalculation();
+      }
     }
 
     function syncLitersFromPercent(pctVal) {
-      const litInput = document.getElementById("mOdoFuelLiters"); const tankCapacity = carProfile.fuelTank || 50;
+      const litInput = document.getElementById("mOdoFuelLiters"); const tankCapacity = window.carProfile.fuelTank || 50;
       if (pctVal === "" || isNaN(pctVal)) { litInput.value = ""; return; }
       litInput.value = ((Math.max(0, Math.min(100, parseFloat(pctVal))) / 100) * tankCapacity).toFixed(1);
     }
 
     function syncPercentFromLiters(litVal) {
-      const pctInput = document.getElementById("mOdoFuelPercent"); const tankCapacity = carProfile.fuelTank || 50;
+      const pctInput = document.getElementById("mOdoFuelPercent"); const tankCapacity = window.carProfile.fuelTank || 50;
       if (litVal === "" || isNaN(litVal)) { pctInput.value = ""; return; }
       pctInput.value = Math.round((Math.max(0, Math.min(tankCapacity, parseFloat(litVal))) / tankCapacity) * 100);
+    }
+
+    let userEditedTankManually = false;
+    function triggerAutoTankCalculation() {
+      if (userEditedTankManually) return;
+      const targetKm = parseFloat(document.getElementById("mOdoInput").value);
+      const targetDate = document.getElementById("mOdoDate").value || getNowLocalISO();
+      const enteredDash = parseFloat(document.getElementById("mOdoDashboardL100").value);
+      const tankCapacity = window.carProfile.fuelTank || 50;
+      const badge = document.getElementById("odoAutoCalcBadge");
+
+      if (isNaN(targetKm) || targetKm <= 0) return;
+
+      const sFuels = window.fuels.filter(f => f.date <= targetDate).sort((a,b) => new Date(a.date) - new Date(b.date) || a.km - b.km);
+      const lastFullFuel = sFuels.slice().reverse().find(f => (f.isFull !== undefined ? f.isFull : f.fillLevel === 'full'));
+      if (!lastFullFuel || targetKm < lastFullFuel.km) return;
+
+      // Ara dolumları topla
+      const interimFuels = sFuels.filter(f => new Date(f.date) > new Date(lastFullFuel.date) && !(f.isFull !== undefined ? f.isFull : f.fillLevel === 'full'));
+      let extraLiters = 0;
+      interimFuels.forEach(f => extraLiters += (parseFloat(f.liters) || 0));
+
+      // Tüketim oranı belirleme
+      let effectiveCons = enteredDash;
+      if (!effectiveCons || isNaN(effectiveCons) || effectiveCons <= 0) {
+        const sortedOdos = window.odoLogs.filter(o => o.dashboardL100 > 0 && o.date <= targetDate).sort((a,b) => new Date(a.date) - new Date(b.date));
+        if (sortedOdos.length > 0) effectiveCons = sortedOdos[sortedOdos.length - 1].dashboardL100;
+        else effectiveCons = 6.5; // Genel ortalama fallback
+      }
+
+      const dist = targetKm - lastFullFuel.km;
+      const burnedLiters = (dist * effectiveCons) / 100;
+      const calculatedRemaining = Math.max(0, Math.min(tankCapacity, (tankCapacity + extraLiters) - burnedLiters));
+      const calculatedPercent = Math.max(0, Math.min(100, Math.round((calculatedRemaining / tankCapacity) * 100)));
+
+      document.getElementById("mOdoFuelLiters").value = calculatedRemaining.toFixed(1);
+      document.getElementById("mOdoFuelPercent").value = calculatedPercent;
+
+      if (badge) {
+        badge.classList.remove("hidden");
+        badge.style.display = "inline-block";
+      }
     }
 
     function toggleRouteNameInput() { document.getElementById("routeNameWrapper").classList.toggle("hidden", !document.getElementById("mOdoIsRouteStart").checked); }
@@ -1706,7 +1863,7 @@
     }
 
     function updateRangeEstimate(avgConsFromHistory) {
-      const banner = document.getElementById("fuelRangeBanner"); const tankCapacity = carProfile.fuelTank || 50; const liveKm = getLatestVehicleKm();
+      const banner = document.getElementById("fuelRangeBanner"); const tankCapacity = window.carProfile.fuelTank || 50; const liveKm = getLatestVehicleKm();
       const sFuels = window.fuels.slice().sort((a,b) => new Date(a.date) - new Date(b.date) || a.km - b.km);
       const lastFullFuel = sFuels.slice().reverse().find(f => (f.isFull !== undefined ? f.isFull : f.fillLevel === 'full'));
       const diffInfoEl = document.getElementById("lastFuelDiffInfo");
@@ -1752,7 +1909,7 @@
         if (netLit >= 0) pureConsStr = ((netLit / dKm) * 100).toFixed(2);
       }
       document.getElementById("arName").innerText = window.activeRoute.name;
-      document.getElementById("arDetails").innerText = `Yapılan: +${dKm.toLocaleString('tr-TR')} km • Saf Ort: ${pureConsStr} L/100km`;
+      document.getElementById("arDetails").innerText = `Mesafe: +${dKm.toLocaleString('tr-TR')} km • Saf Ort: ${pureConsStr} L/100km`;
       banner.classList.remove("hidden"); banner.style.display="block";
     }
 
@@ -1920,24 +2077,47 @@
     }
 
     function openOdoModal(editId = null) {
-      const tankCapacity = carProfile.fuelTank || 50;
+      userEditedTankManually = false;
+      const tankCapacity = window.carProfile.fuelTank || 50;
+      const autoBadge = document.getElementById("odoAutoCalcBadge");
+      if (autoBadge) autoBadge.classList.add("hidden");
+
       if (editId) {
         const item = window.odoLogs.find(o => String(o.id) === String(editId));
         if (!item) return;
-        document.getElementById("mOdoId").value = item.id; document.getElementById("mOdoDate").value = item.date; document.getElementById("mOdoInput").value = item.km;
+        userEditedTankManually = true; // Düzenlemede var olan değeri koru
+        document.getElementById("mOdoId").value = item.id; 
+        document.getElementById("mOdoDate").value = item.date; 
+        document.getElementById("mOdoInput").value = item.km;
         document.getElementById("mOdoDashboardL100").value = item.dashboardL100 || "";
         document.getElementById("mOdoFuelPercent").value = item.fuelPercent !== undefined && item.fuelPercent !== null ? item.fuelPercent : "";
         document.getElementById("mOdoFuelLiters").value = item.fuelPercent !== undefined && item.fuelPercent !== null ? ((item.fuelPercent / 100) * tankCapacity).toFixed(1) : "";
-        document.getElementById("mOdoIsBridge").checked = !!item.isBridge; document.getElementById("mOdoNote").value = item.note || "";
-        document.getElementById("mOdoIsRouteStart").checked = false; document.getElementById("routeNameWrapper").classList.add("hidden"); document.getElementById("odoModalTitle").innerText = "📍 Kilometreyi Düzenle";
+        document.getElementById("mOdoIsBridge").checked = !!item.isBridge; 
+        document.getElementById("mOdoNote").value = item.note || "";
+        document.getElementById("mOdoIsRouteStart").checked = false; 
+        document.getElementById("routeNameWrapper").classList.add("hidden"); 
+        document.getElementById("odoModalTitle").innerText = "📍 Kilometreyi Düzenle";
       } else {
         const liveKm = getLatestVehicleKm();
-        document.getElementById("mOdoId").value = ""; document.getElementById("mOdoDate").value = getNowLocalISO(); document.getElementById("mOdoInput").value = liveKm > 0 ? liveKm : "";
-        document.getElementById("mOdoDashboardL100").value = ""; document.getElementById("mOdoFuelPercent").value = ""; document.getElementById("mOdoFuelLiters").value = "";
-        document.getElementById("mOdoIsBridge").checked = false; document.getElementById("mOdoNote").value = ""; document.getElementById("mOdoIsRouteStart").checked = false;
-        document.getElementById("mOdoRouteName").value = ""; document.getElementById("routeNameWrapper").classList.add("hidden"); document.getElementById("odoModalTitle").innerText = "📍 Araç Kilometresi Kaydet";
+        document.getElementById("mOdoId").value = ""; 
+        document.getElementById("mOdoDate").value = getNowLocalISO(); 
+        document.getElementById("mOdoInput").value = liveKm > 0 ? liveKm : "";
+        document.getElementById("mOdoDashboardL100").value = ""; 
+        document.getElementById("mOdoFuelPercent").value = ""; 
+        document.getElementById("mOdoFuelLiters").value = "";
+        document.getElementById("mOdoIsBridge").checked = false; 
+        document.getElementById("mOdoNote").value = ""; 
+        document.getElementById("mOdoIsRouteStart").checked = false;
+        document.getElementById("mOdoRouteName").value = ""; 
+        document.getElementById("routeNameWrapper").classList.add("hidden"); 
+        document.getElementById("odoModalTitle").innerText = "📍 Araç Kilometresi Kaydet";
+
+        // Açılışta otomatik kalan yakıt hesaplamayı dene
+        setTimeout(() => triggerAutoTankCalculation(), 50);
       }
-      calculateTripFromOdo(); document.getElementById("odoAnomalyWarning").classList.add("hidden"); openModalDirectly("odoModal");
+      calculateTripFromOdo(); 
+      document.getElementById("odoAnomalyWarning").classList.add("hidden"); 
+      openModalDirectly("odoModal");
     }
 
     function saveManualOdo(e) {
@@ -2014,7 +2194,7 @@
         const dashL100Val = document.getElementById("fDashboardL100").value ? parseFloat(document.getElementById("fDashboardL100").value) : null;
         
         const r = {
-          id, date: dateVal, km: kmVal, station: document.getElementById("fStation").value, fuelType: carProfile.hasLpg ? document.getElementById("fFuelType").value : "Benzin/Dizel",
+          id, date: dateVal, km: kmVal, station: document.getElementById("fStation").value, fuelType: window.carProfile.hasLpg ? document.getElementById("fFuelType").value : "Benzin/Dizel",
           branch: document.getElementById("fBranch").value.trim(), liters: parseFloat(document.getElementById("fLiters").value), total: parseFloat(document.getElementById("fTotal").value),
           dashL100: dashL100Val, paymentMethod: document.getElementById("fPaymentMethod").value,
           isFull: isFullVal, fillLevel: isFullVal ? 'full' : 'quarter', docId: document.getElementById("fDocId").value || null
@@ -2224,7 +2404,7 @@
       if (filtered.length === 0) return container.innerHTML = `<div class="p-6 text-center custom-muted text-xs font-semibold">Kayıtlı gider bulunmuyor.</div>`;
       filtered.forEach(item => {
         const card = document.createElement("div"); card.className = "custom-card p-3.5 shadow text-xs transition-all";
-        const dateFormatted = formatDateTimeLabel(item.date); const isExp = expandedExpenses.has(item.id); const isFree = (item.amount === 0 || item.amount === "0");
+        const dateFormatted = formatDateTimeLabel(item.date); const isFree = (item.amount === 0 || item.amount === "0");
         card.innerHTML = `<div onclick="toggleExpenseExpansion('${item.id}')" class="cursor-pointer"><div class="flex justify-between items-center"><div><div class="flex items-center gap-1.5 mb-1 flex-wrap"><span class="font-black text-pink-600 dark:text-pink-400 text-xs">${item.type}</span><span class="theme-badge-purple px-2 py-0.5 rounded-md text-[10px] font-bold">${item.paymentMethod || 'Nakit'}</span>${isFree ? `<span class="theme-badge-green text-[9px] font-black px-2 py-0.5 rounded-md">🛡️ Garanti (0 ₺)</span>` : ''}</div><div class="custom-muted text-[10px] font-semibold">${dateFormatted} ${item.maintenanceKm ? '• ' + item.maintenanceKm.toLocaleString('tr-TR') + ' KM' : ''} ${item.desc ? '• ' + item.desc : ''}</div></div><div class="text-right"><span class="font-black text-sm ${isFree ? 'text-emerald-600 dark:text-emerald-400' : ''}">${isFree ? '0 ₺' : '₺' + parseFloat(item.amount).toLocaleString('tr-TR')}</span><div class="text-[10px] custom-muted mt-1 font-bold">${isExp ? '▲ Kapat' : '▼ Detay'}</div></div></div></div>${isExp ? `<div class="pt-2.5 mt-2.5 border-t border-slate-700/40 space-y-2.5"><div class="flex justify-between items-center pt-1">${item.docId ? `<button onclick="viewDocumentById('${item.docId}')" class="text-cyan-600 dark:text-cyan-400 font-black text-[11px] flex items-center gap-1"><span>📄</span> Belgeyi Görüntüle</button>` : '<span></span>'}<div class="flex gap-3 font-bold text-[11px]"><button onclick="editExpense('${item.id}')" class="text-blue-600 hover:underline">Düzenle</button><button onclick="deleteExpense('${item.id}')" class="text-rose-500 hover:underline">Sil</button></div></div></div>` : ''}`;
         container.appendChild(card);
       });
@@ -2355,7 +2535,7 @@
     function switchReportMode(mode) {
       activeReportMode = mode; const bH = document.getElementById("btnRepHealthMode"); const bR = document.getElementById("btnRepResaleMode"); const dynamicContainer = document.getElementById("reportDynamicContent");
       const liveKm = getLatestVehicleKm(); const now = new Date(); const expDateEl = document.getElementById("expReportDate"); if (expDateEl) expDateEl.innerText = `Rapor Tarihi: ${now.toLocaleDateString('tr-TR')}`;
-      document.getElementById("repCarKm").innerText = liveKm > 0 ? `${liveKm.toLocaleString('tr-TR')} KM` : "0 KM"; document.getElementById("repCarName").innerText = carProfile.name || "Carveri"; document.getElementById("repCarDesc").innerText = `${carProfile.desc || 'Model'}`;
+      document.getElementById("repCarKm").innerText = liveKm > 0 ? `${liveKm.toLocaleString('tr-TR')} KM` : "0 KM"; document.getElementById("repCarName").innerText = window.carProfile.name || "Carveri"; document.getElementById("repCarDesc").innerText = `${window.carProfile.desc || 'Model'}`;
 
       if (mode === 'health') {
         bH.className = "flex-1 py-2 text-[11px] font-black rounded-lg bg-blue-600 text-white shadow"; bR.className = "flex-1 py-2 text-[11px] font-black rounded-lg custom-muted hover:text-white";
@@ -2480,7 +2660,7 @@
       document.getElementById("btnReturnToMonthlyKm").classList.add("hidden"); document.getElementById("landscapeChartIcon").innerText = "📈"; document.getElementById("landscapeChartTitle").innerText = "Aylık Yol Analizi (Tam Ekran)"; document.getElementById("landscapeChartSubText").innerText = "Sütuna tıklayarak o ayın gün analizini açın";
       const fF = window.fuels.filter(f => selectedYear === "all" || (f.date && f.date.startsWith(selectedYear))); const m = processMonthlyData(calculateFuelMetrics(fF)); const ctx = document.getElementById("landscapeCanvas").getContext("2d"); const gC = getThemeGridColor(); const tC = getThemeTextColor();
       if (charts.landscape) { charts.landscape.destroy(); charts.landscape = null; }
-      charts.landscape = new Chart(ctx, { type: 'bar', data: { labels: m.labels.length ? m.labels.map(l => l + ". Ay") : ["-"], datasets: [{ label: 'Yol (km)', data: m.kmData.length ? m.kmData : [0], backgroundColor: '#3b82f6', borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: false, onClick: (evt, elements) => { if (elements.length > 0) { const index = elements[0].index; const selectedKey = m.fullKeys[index]; renderLandscapeDailyKm(selectedKey); } }, scales: { x: { grid: { color: gC }, ticks: { color: tC } }, y: { grid: { color: gC }, ticks: { color: tC } } } } });
+      charts.landscape = new Chart(ctx, { type: 'bar', data: { labels: m.labels.length ? m.labels : ["-"], datasets: [{ label: 'Yol (km)', data: m.kmData.length ? m.kmData : [0], backgroundColor: '#3b82f6', borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: false, onClick: (evt, elements) => { if (elements.length > 0) { const index = elements[0].index; const selectedKey = m.fullKeys[index]; renderLandscapeDailyKm(selectedKey); } }, scales: { x: { grid: { color: gC }, ticks: { color: tC } }, y: { grid: { color: gC }, ticks: { color: tC } } } } });
       const infoBox = document.getElementById("landscapeBottomInfoBox");
       infoBox.innerHTML = `<div class="text-[11px] font-black text-cyan-600 dark:text-cyan-400 mb-1">📅 Aylık Döküm Özeti (Detay İçin Tıklayın):</div><div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[10px]">${m.fullKeys.map((mk, idx) => `<div onclick="renderLandscapeDailyKm('${mk}')" class="p-2 theme-sub-box rounded-lg cursor-pointer hover:border-cyan-500 transition-colors"><span class="custom-muted block font-bold">${mk}</span><b class="text-blue-600 dark:text-blue-400 font-black">${m.kmData[idx].toLocaleString('tr-TR')} KM</b></div>`).join('')}</div>`;
     }
@@ -2512,7 +2692,8 @@
       localStorage.setItem(STORAGE_PREFIX + "odologs", JSON.stringify(window.odoLogs || []));
       localStorage.setItem(STORAGE_PREFIX + "expenses", JSON.stringify(window.expenses || []));
       localStorage.setItem(STORAGE_PREFIX + "tires", JSON.stringify(window.tireData || window.defaultTireData));
-      localStorage.setItem(STORAGE_PREFIX + "profile", JSON.stringify(typeof carProfile !== 'undefined' ? carProfile : defaultProfile));
+      localStorage.setItem(STORAGE_PREFIX + "profile", JSON.stringify(typeof window.carProfile !== 'undefined' ? window.carProfile : defaultProfile));
+      localStorage.setItem(STORAGE_PREFIX + "vehicle_notes", window.vehicleNotes || "");
       localStorage.setItem(STORAGE_PREFIX + "active_route", JSON.stringify(window.activeRoute || null));
       localStorage.setItem(STORAGE_PREFIX + "completed_routes", JSON.stringify(window.completedRoutes || []));
     }
@@ -2539,8 +2720,9 @@
 
       const sbd = cf.slice().sort((a, b) => new Date(a.date) - new Date(b.date));
       let currentAvgCons = null;
+      let dK = 0;
       if (sbd.length >= 2) {
-        let dK = sbd[sbd.length - 1].km - sbd[0].km;
+        dK = sbd[sbd.length - 1].km - sbd[0].km;
         document.getElementById("statTotalDistance").innerText = `Mesafe: ${dK > 0 ? dK.toLocaleString('tr-TR') : 0} km`;
         document.getElementById("statCostPerKm").innerText = dK > 0 ? (tfc / dK).toFixed(2) : "--";
         let vcL = cf.filter(f => f.consumption).map(f => parseFloat(f.consumption));
@@ -2552,6 +2734,68 @@
       } else {
         document.getElementById("statLatestCons").innerText = "--"; document.getElementById("statAvgCons").innerText = "Dönem Ort: -- L";
         document.getElementById("statCostPerKm").innerText = "--"; document.getElementById("statTotalDistance").innerText = "Mesafe: 0 km";
+      }
+
+      // 1. YOL BİLGİSAYARI İLE GERÇEK TÜKETİM SAPMA ANALİZİ
+      let diffSum = 0, diffCount = 0;
+      cf.forEach(f => {
+        if (f.consumption && f.dashL100 && (f.isFull !== undefined ? f.isFull : (f.fillLevel === 'full'))) {
+          const pumpVal = parseFloat(f.consumption);
+          const dashVal = parseFloat(f.dashL100);
+          if (pumpVal > 0 && dashVal > 0) {
+            diffSum += (pumpVal - dashVal);
+            diffCount++;
+          }
+        }
+      });
+      const biasValEl = document.getElementById("statDashBiasVal");
+      const biasDescEl = document.getElementById("statDashBiasDesc");
+      if (diffCount > 0) {
+        const avgDiff = diffSum / diffCount;
+        const sign = avgDiff >= 0 ? "+" : "";
+        biasValEl.innerText = `${sign}${avgDiff.toFixed(2)} L/100km`;
+        biasDescEl.innerText = avgDiff >= 0 
+          ? `Ekran ort. %${((avgDiff / (currentAvgCons || 6.5)) * 100).toFixed(1)} iyimser` 
+          : `Ekran ort. %${((Math.abs(avgDiff) / (currentAvgCons || 6.5)) * 100).toFixed(1)} kötümser`;
+      } else {
+        biasValEl.innerText = "--";
+        biasDescEl.innerText = "Yeterli karşılaştırma yok";
+      }
+
+      // 2. YILLIK KULLANIM YOĞUNLUĞU VE PROJEKSİYON
+      const paceValEl = document.getElementById("statUsagePaceVal");
+      const projDescEl = document.getElementById("statUsageProjDesc");
+      const now = new Date();
+      const isCurYear = (selectedYear === now.getFullYear().toString());
+      
+      let yearTotalKm = dK;
+      // Eğer tek yakıt varsa veya KM odologs üzerinden daha genişse:
+      const allYearEvents = [...ff, ...window.odoLogs.filter(o => selectedYear === "all" || (o.date && o.date.startsWith(selectedYear)))].sort((a,b) => new Date(a.date) - new Date(b.date));
+      if (allYearEvents.length >= 2) {
+        const netYKm = allYearEvents[allYearEvents.length - 1].km - allYearEvents[0].km;
+        if (netYKm > yearTotalKm) yearTotalKm = netYKm;
+      }
+
+      if (yearTotalKm > 0) {
+        if (isCurYear) {
+          const startOfYear = new Date(now.getFullYear(), 0, 1);
+          const dayOfYear = Math.max(1, Math.ceil((now - startOfYear) / (1000 * 60 * 60 * 24)));
+          const dailyAvg = yearTotalKm / dayOfYear;
+          const monthlyAvg = Math.round(dailyAvg * 30.4);
+          const projectedTotal = Math.round(dailyAvg * 365);
+          paceValEl.innerText = `~${monthlyAvg.toLocaleString('tr-TR')} km/ay`;
+          projDescEl.innerText = `Yıl sonu tahmini: ~${projectedTotal.toLocaleString('tr-TR')} KM`;
+        } else if (selectedYear !== "all") {
+          const monthlyAvg = Math.round(yearTotalKm / 12);
+          paceValEl.innerText = `${monthlyAvg.toLocaleString('tr-TR')} km/ay`;
+          projDescEl.innerText = `Yıllık toplam: ${yearTotalKm.toLocaleString('tr-TR')} KM`;
+        } else {
+          paceValEl.innerText = `${yearTotalKm.toLocaleString('tr-TR')} KM`;
+          projDescEl.innerText = `Tüm zamanlar toplam yol`;
+        }
+      } else {
+        paceValEl.innerText = "-- km/ay";
+        projDescEl.innerText = "Mesafe verisi bekleniyor";
       }
 
       updateRangeEstimate(currentAvgCons); updateActiveRouteBanner(); renderFuelCards(getFilteredCombinedLogs()); renderExpenseCards();
