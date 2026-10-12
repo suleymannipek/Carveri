@@ -1,10 +1,11 @@
-const CACHE_NAME = 'carveri-v23';
-const ASSETS = [
+const CACHE_NAME = 'carveri-v24';
+const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './manifest.json',
-  'https://cdn.tailwindcss.com',
-  'https://cdn.jsdelivr.net/npm/chart.js'
+  './libs/tailwind.js',
+  './libs/chart.js',
+  './libs/jszip.min.js'
 ];
 
 self.addEventListener('install', (e) => {
