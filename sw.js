@@ -1,4 +1,4 @@
-const CACHE_NAME = 'carveri-v25';
+const CACHE_NAME = 'carveri-v26';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -10,7 +10,9 @@ const ASSETS_TO_CACHE = [
 
 self.addEventListener('install', (e) => {
   e.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS)).then(() => self.skipWaiting())
+    caches.open(CACHE_NAME)
+      .then((cache) => cache.addAll(ASSETS_TO_CACHE))
+      .then(() => self.skipWaiting())
   );
 });
 
@@ -27,6 +29,13 @@ self.addEventListener('activate', (e) => {
 });
 
 self.addEventListener('fetch', (e) => {
+  const url = new URL(e.request.url);
+
+  // Cloudflare Worker canlı API isteklerini önbelleğe alma, doğrudan internetten çek
+  if (url.hostname.includes('workers.dev')) {
+    return;
+  }
+
   e.respondWith(
     caches.match(e.request).then((cachedResponse) => {
       if (cachedResponse) return cachedResponse;
