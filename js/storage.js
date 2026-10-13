@@ -43,7 +43,7 @@ window.activeRoute = getPersistedData("active_route", [], null);
 window.completedRoutes = getPersistedData("completed_routes", [], []);
 window.customPaymentMethods = getPersistedData("payment_methods", ["ototakip_payment_methods"], ["Nakit", "Bonus", "Maximum", "World", "Axess", "Bankkart"]);
 window.cardRewards = getPersistedData("card_rewards", ["ototakip_card_rewards"], {});
-window.liveFuelData = getPersistedData("live_fuel_prices", [], null);
+window.liveFuelData = getPersistedData("live_fuel_prices", ["ototakip_live_fuel_prices"], null);
 window.carProfile = getPersistedData("profile", ["ototakip_profile", "oto_profile_v2"], defaultProfile);
 window.vehicleNotes = localStorage.getItem(STORAGE_PREFIX + "vehicle_notes") || "";
 
@@ -63,8 +63,8 @@ function persistAllData() {
 function persistPaymentMethods() {
   localStorage.setItem(STORAGE_PREFIX + "payment_methods", JSON.stringify(window.customPaymentMethods));
   localStorage.setItem(STORAGE_PREFIX + "card_rewards", JSON.stringify(window.cardRewards));
-  populatePaymentSelects();
-  renderPaymentBreakdown();
+  if (typeof populatePaymentSelects === 'function') populatePaymentSelects();
+  if (typeof renderPaymentBreakdown === 'function') renderPaymentBreakdown();
 }
 
 function getLatestVehicleKm() {
@@ -102,8 +102,8 @@ function applyCarProfile() {
   }
 
   toggleLpgConfigField();
-  if (typeof highlightActiveFuelBox === 'function') highlightActiveFuelBox();
-  if (typeof updateLpgVisibilityInApp === 'function') updateLpgVisibilityInApp();
+  highlightActiveFuelBox();
+  updateLpgVisibilityInApp();
 }
 
 function toggleLpgConfigField() {
@@ -132,7 +132,7 @@ function saveCarProfile() {
   };
   persistAllData();
   applyCarProfile();
-  renderAll();
+  if (typeof renderAll === 'function') renderAll();
   toggleProfileAccordion();
   alert("Araç profili güncellendi!");
 }
@@ -155,10 +155,89 @@ function saveAppNotesLive() {
   }
 }
 
+// --- CANLI AKARYAKIT FİYATLARI (CLOUDFLARE WORKER) ---
+const FUEL_PRICE_WORKER_URL = "https://fuel-prices.suleymanipek.workers.dev";
+
+async function fetchLiveFuelPrices() {
+  const badge = document.getElementById("fuelPriceUpdateBadge");
+  try {
+    if (badge) badge.innerText = "Yükleniyor...";
+    const res = await fetch(`${FUEL_PRICE_WORKER_URL}?t=${Date.now()}`);
+    if (!res.ok) throw new Error("Ağ yanıtı başarısız");
+    const data = await res.json();
+    if (data && data.fiyatlar) {
+      window.liveFuelData = data;
+      localStorage.setItem(STORAGE_PREFIX + "live_fuel_prices", JSON.stringify(data));
+      renderLiveFuelCard();
+    }
+  } catch (err) {
+    const cached = localStorage.getItem(STORAGE_PREFIX + "live_fuel_prices");
+    if (cached) {
+      try {
+        window.liveFuelData = JSON.parse(cached);
+        renderLiveFuelCard();
+      } catch (e) {}
+    }
+    if (badge) badge.innerText = "Güncellenemedi";
+  }
+}
+
+function renderLiveFuelCard() {
+  const data = window.liveFuelData;
+  const badge = document.getElementById("fuelPriceUpdateBadge");
+  const benzinEl = document.getElementById("valPriceBenzin");
+  const motorinEl = document.getElementById("valPriceMotorin");
+  const lpgEl = document.getElementById("valPriceLpg");
+
+  if (!data || !data.fiyatlar) {
+    if (badge) badge.innerText = "--";
+    return;
+  }
+
+  if (benzinEl) benzinEl.innerText = data.fiyatlar.benzin || "--";
+  if (motorinEl) motorinEl.innerText = data.fiyatlar.motorin || "--";
+  if (lpgEl) lpgEl.innerText = data.fiyatlar.lpg || "--";
+
+  if (badge) {
+    badge.innerText = data.guncelleme ? data.guncelleme : "Canlı";
+  }
+  highlightActiveFuelBox();
+}
+
+function highlightActiveFuelBox() {
+  const bBox = document.getElementById("boxPriceBenzin");
+  const mBox = document.getElementById("boxPriceMotorin");
+  const lBox = document.getElementById("boxPriceLpg");
+  if (!bBox || !mBox || !lBox) return;
+
+  [bBox, mBox, lBox].forEach(el => el.classList.remove("border-amber-500", "bg-amber-500/10"));
+
+  const fType = (window.carProfile && window.carProfile.fuelType) || "benzin";
+  if (fType === "motorin") {
+    mBox.classList.add("border-amber-500", "bg-amber-500/10");
+  } else {
+    bBox.classList.add("border-amber-500", "bg-amber-500/10");
+  }
+
+  if (window.carProfile && window.carProfile.hasLpg) {
+    lBox.classList.add("border-amber-500/60");
+  }
+}
+
+function updateLpgVisibilityInApp() {
+  const lpgBox = document.getElementById("boxPriceLpg");
+  const fuelTypeWrap = document.getElementById("fuelTypeWrapper");
+  const hasLpg = !!(window.carProfile && window.carProfile.hasLpg);
+
+  if (lpgBox) lpgBox.style.display = hasLpg ? "block" : "none";
+  if (fuelTypeWrap) fuelTypeWrap.classList.toggle("hidden", !hasLpg);
+}
+
+// --- YEDEKLEME VE DIŞA AKTARMA ---
 async function exportBackupZip() {
   try {
     if (typeof JSZip === "undefined") {
-      return alert("JSZip kütüphanesi yüklenemedi. Lütfen kütüphanenin libs klasöründe mevcut olduğunu kontrol edin.");
+      return alert("JSZip kütüphanesi yüklenemedi. libs klasörünü kontrol edin.");
     }
 
     const nowStr = new Date().toLocaleString('tr-TR');
@@ -186,13 +265,13 @@ async function exportBackupZip() {
     zip.file("veriler.json", JSON.stringify(dataJson, null, 2));
 
     const docsFolder = zip.folder("belgeler");
-    const allDocs = await getAllDocsFromDB();
-    
+    const allDocs = (typeof getAllDocsFromDB === 'function') ? await getAllDocsFromDB() : {};
+
     for (const [docId, dataUri] of Object.entries(allDocs)) {
       if (!dataUri) continue;
       const commaIdx = dataUri.indexOf(",");
       if (commaIdx === -1) continue;
-      
+
       const metaPart = dataUri.substring(0, commaIdx);
       const base64Content = dataUri.substring(commaIdx + 1);
 
@@ -226,7 +305,7 @@ async function importBackupFile(e) {
   try {
     if (file.name.endsWith(".zip")) {
       if (typeof JSZip === "undefined") return alert("JSZip kütüphanesi yüklenemedi.");
-      
+
       const zip = await JSZip.loadAsync(file);
       const jsonFile = zip.file("veriler.json");
       if (!jsonFile) return alert("Hata: ZIP içinde 'veriler.json' bulunamadı.");
@@ -259,14 +338,14 @@ async function importBackupFile(e) {
 
         const b64 = await zip.file(path).async("base64");
         const dataUri = `data:${mime};base64,${b64}`;
-        await saveDocToDB(docId, dataUri);
+        if (typeof saveDocToDB === 'function') await saveDocToDB(docId, dataUri);
       }
 
       persistAllData();
       persistPaymentMethods();
-      populateYearSelector();
-      renderTiresTab();
-      renderAll();
+      if (typeof populateYearSelector === 'function') populateYearSelector();
+      if (typeof renderTiresTab === 'function') renderTiresTab();
+      if (typeof renderAll === 'function') renderAll();
       alert("✓ ZIP yedeği başarıyla geri yüklendi!");
       e.target.value = "";
 
@@ -287,16 +366,16 @@ async function importBackupFile(e) {
           window.completedRoutes = Array.isArray(p.completedRoutes) ? p.completedRoutes : [];
           window.customPaymentMethods = Array.isArray(p.paymentMethods) ? p.paymentMethods : ["Nakit", "Bonus", "Maximum", "World"];
           window.cardRewards = p.cardRewards || {};
-          if (p.documents && typeof p.documents === 'object') {
+          if (p.documents && typeof p.documents === 'object' && typeof saveDocToDB === 'function') {
             for (let [dId, dUri] of Object.entries(p.documents)) {
               if (dUri) await saveDocToDB(dId, dUri);
             }
           }
           persistAllData();
           persistPaymentMethods();
-          populateYearSelector();
-          renderTiresTab();
-          renderAll();
+          if (typeof populateYearSelector === 'function') populateYearSelector();
+          if (typeof renderTiresTab === 'function') renderTiresTab();
+          if (typeof renderAll === 'function') renderAll();
           alert("✓ JSON yedeği başarıyla geri yüklendi!");
           e.target.value = "";
         } catch (err) {
@@ -348,11 +427,11 @@ async function wipeAllDataSecurely() {
     window.vehicleNotes = "";
     window.customPaymentMethods = ["Nakit"];
     window.cardRewards = {};
-    await clearAllDocsFromDB();
+    if (typeof clearAllDocsFromDB === 'function') await clearAllDocsFromDB();
     persistAllData();
     persistPaymentMethods();
-    renderAll();
+    if (typeof renderAll === 'function') renderAll();
     alert("Sıfırlandı!");
-    switchTab("dashboard");
+    if (typeof switchTab === 'function') switchTab("dashboard");
   }
 }
