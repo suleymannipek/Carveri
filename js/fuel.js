@@ -356,6 +356,7 @@ function saveFuel(e) {
     }
 
     persistAllData();
+    syncSelectedYearWithDate(dateVal);
     closeModal("fuelModal");
     populateYearSelector();
     renderAll();
