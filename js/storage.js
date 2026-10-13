@@ -156,7 +156,7 @@ function saveAppNotesLive() {
 }
 
 // --- CANLI AKARYAKIT FİYATLARI (CLOUDFLARE WORKER) ---
-const FUEL_PRICE_WORKER_URL = "https://fuel-prices.suleymanipek.workers.dev";
+const FUEL_PRICE_WORKER_URL = "https://eskisehir-akaryakit-botu.aiicinalindi.workers.dev/";
 
 async function fetchLiveFuelPrices() {
   const badge = document.getElementById("fuelPriceUpdateBadge");
@@ -165,12 +165,23 @@ async function fetchLiveFuelPrices() {
     const res = await fetch(`${FUEL_PRICE_WORKER_URL}?t=${Date.now()}`);
     if (!res.ok) throw new Error("Ağ yanıtı başarısız");
     const data = await res.json();
-    if (data && data.fiyatlar) {
-      window.liveFuelData = data;
-      localStorage.setItem(STORAGE_PREFIX + "live_fuel_prices", JSON.stringify(data));
+    
+    // Gelen veri doğrudan nesne veya 'fiyatlar' altında olabilir
+    const prices = data.fiyatlar || data;
+    if (prices) {
+      window.liveFuelData = {
+        fiyatlar: {
+          benzin: prices.benzin || prices.kursunsuz || prices.gasoline || "--",
+          motorin: prices.motorin || prices.dizel || prices.diesel || "--",
+          lpg: prices.lpg || prices.otogaz || prices.autogas || "--"
+        },
+        guncelleme: data.guncelleme || data.tarih || data.updated_at || "Canlı"
+      };
+      localStorage.setItem(STORAGE_PREFIX + "live_fuel_prices", JSON.stringify(window.liveFuelData));
       renderLiveFuelCard();
     }
   } catch (err) {
+    console.warn("Fiyat çekme hatası:", err);
     const cached = localStorage.getItem(STORAGE_PREFIX + "live_fuel_prices");
     if (cached) {
       try {
