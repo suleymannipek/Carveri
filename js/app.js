@@ -177,6 +177,16 @@ function populateYearSelector() {
     yearSelect.appendChild(opt);
   });
 }
+function syncSelectedYearWithDate(targetDateStr) {
+  if (!targetDateStr || targetDateStr.length < 4) return;
+  const entryYear = targetDateStr.substring(0, 4);
+  
+  // Eğer filtre 'all' değilse, seçiciyi otomatik olarak eklenen kaydın yılına çek
+  if (selectedYear !== "all") {
+    selectedYear = entryYear;
+    localStorage.setItem(STORAGE_PREFIX + "selected_year", entryYear);
+  }
+}
 
 function changeActiveYear(year) {
   selectedYear = year;
