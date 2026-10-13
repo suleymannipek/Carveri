@@ -1,11 +1,20 @@
-const CACHE_NAME = 'carveri-v26';
+const CACHE_NAME = 'carveri-v27';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './manifest.json',
+  './css/styles.css',
   './libs/tailwind.js',
   './libs/chart.js',
-  './libs/jszip.min.js'
+  './libs/jszip.min.js',
+  './js/db.js',
+  './js/storage.js',
+  './js/odo.js',
+  './js/fuel.js',
+  './js/templates.js',
+  './js/expenses.js',
+  './js/charts.js',
+  './js/app.js'
 ];
 
 self.addEventListener('install', (e) => {
