@@ -346,19 +346,28 @@ function renderAll() {
   renderCompletedRoutes();
 }
 
-// Uygulama Başlatıcı
-window.addEventListener('DOMContentLoaded', () => {
+// --- UYGULAMA BAŞLATICI (GARANTİ VE ANINDA ÇALIŞTIRMA) ---
+function startApp() {
   if (navigator.storage && navigator.storage.persist) {
-    navigator.storage.persist().then(() => {});
+    navigator.storage.persist().then(() => {}).catch(() => {});
   }
+  applyCurrentTheme();
+  applyFontSize(currentFontSizeKey);
+  populateYearSelector();
+  renderTiresTab();
+  renderLiveFuelCard();
+  fetchLiveFuelPrices();
+  renderAll();
 
-  initIndexedDB().then(() => {
-    applyCurrentTheme();
-    applyFontSize(currentFontSizeKey);
-    populateYearSelector();
-    renderTiresTab();
-    renderLiveFuelCard();
-    fetchLiveFuelPrices();
-    renderAll();
-  });
-});
+  // IndexedDB arka planda bağımsız başlasın, UI'ı kilitlemesin
+  if (typeof initIndexedDB === 'function') {
+    initIndexedDB().catch(e => console.warn("DB başlatma uyarısı:", e));
+  }
+}
+
+// Hem DOMContentLoaded hem de doğrudan çağrı ile garanti başlat
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', startApp);
+} else {
+  startApp();
+}
