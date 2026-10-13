@@ -1,68 +1,11 @@
-// --- FUEL.JS: YAKIT İŞLEMLERİ, CANLI FİYATLAR VE FİLTRELEME ---
+// --- FUEL.JS: YAKIT İŞLEMLERİ, MENZİL HESABI VE FİLTRELEME ---
 
 let activeFuelViewFilter = "all";
 
 function updateLpgVisibilityInApp() {
   const wrapper = document.getElementById("fuelTypeWrapper");
   if (wrapper) {
-    wrapper.classList.toggle("hidden", !window.carProfile.hasLpg);
-  }
-}
-
-async function fetchLiveFuelPrices() {
-  const url = "https://eskisehir-akaryakit-botu.aiicinalindi.workers.dev/";
-  try {
-    const res = await fetch(url);
-    if (res.ok) {
-      const data = await res.json();
-      window.liveFuelData = data;
-      localStorage.setItem(STORAGE_PREFIX + "live_fuel_prices", JSON.stringify(data));
-      renderLiveFuelCard();
-    } else {
-      renderLiveFuelCard();
-    }
-  } catch (err) {
-    renderLiveFuelCard();
-  }
-}
-
-function renderLiveFuelCard() {
-  const bBenzin = document.getElementById("valPriceBenzin");
-  const bMotorin = document.getElementById("valPriceMotorin");
-  const bLpg = document.getElementById("valPriceLpg");
-  const badge = document.getElementById("fuelPriceUpdateBadge");
-
-  if (!window.liveFuelData || !window.liveFuelData.fiyatlar) {
-    if (badge) badge.innerText = "Fiyat Bekleniyor";
-    return;
-  }
-
-  const f = window.liveFuelData.fiyatlar;
-  if (bBenzin) bBenzin.innerText = f.benzin || "--";
-  if (bMotorin) bMotorin.innerText = f.motorin || "--";
-  if (bLpg) bLpg.innerText = f.lpg || "--";
-  if (badge) badge.innerText = window.liveFuelData.tarih ? `Güncel: ${window.liveFuelData.tarih}` : "Canlı";
-
-  highlightActiveFuelBox();
-}
-
-function highlightActiveFuelBox() {
-  const fType = window.carProfile.fuelType || "benzin";
-  const hasLpg = !!window.carProfile.hasLpg;
-
-  ["Benzin", "Motorin", "Lpg"].forEach(k => {
-    const el = document.getElementById("boxPrice" + k);
-    if (el) el.className = "p-2 rounded-xl theme-sub-box border border-transparent transition-all";
-  });
-
-  const activeKey = fType === "motorin" ? "Motorin" : "Benzin";
-  const target = document.getElementById("boxPrice" + activeKey);
-  if (target) {
-    target.className = "p-2 rounded-xl theme-sub-box border border-amber-500 bg-amber-500/10 font-black";
-  }
-  if (hasLpg) {
-    const lpgTarget = document.getElementById("boxPriceLpg");
-    if (lpgTarget) lpgTarget.className = "p-2 rounded-xl theme-sub-box border border-cyan-500/60 bg-cyan-500/10";
+    wrapper.classList.toggle("hidden", !(window.carProfile && window.carProfile.hasLpg));
   }
 }
 
@@ -71,6 +14,7 @@ function checkFuelAnomalyLive() {
   const km = parseFloat(document.getElementById("fKm").value);
   const editId = document.getElementById("fId").value;
   const warnEl = document.getElementById("fuelAnomalyWarning");
+  if (typeof validateTimelineOdo !== 'function') return;
   const res = validateTimelineOdo(d, km, editId);
   if (!res.isValid) {
     warnEl.innerText = res.msg;
@@ -94,7 +38,7 @@ function checkFuelIntervalLive(val) {
     return;
   }
 
-  const prevFuels = window.fuels
+  const prevFuels = (window.fuels || [])
     .filter(f => String(f.id) !== String(editId) && f.date <= dateVal)
     .sort((a, b) => new Date(a.date) - new Date(b.date) || a.km - b.km);
   const prev = prevFuels.pop();
@@ -112,6 +56,7 @@ function checkFuelIntervalLive(val) {
 }
 
 function calculateFuelMetrics(list) {
+  if (!Array.isArray(list)) list = [];
   const s = list.slice().sort((a, b) => new Date(a.date) - new Date(b.date) || a.km - b.km);
   let r = [], poolLiters = 0, lastFullIdx = -1;
 
@@ -142,19 +87,19 @@ function calculateFuelMetrics(list) {
 
 function updateRangeEstimate(avgConsFromHistory) {
   const banner = document.getElementById("fuelRangeBanner");
-  const tankCapacity = window.carProfile.fuelTank || 50;
-  const liveKm = getLatestVehicleKm();
-  const sFuels = window.fuels.slice().sort((a, b) => new Date(a.date) - new Date(b.date) || a.km - b.km);
+  const tankCapacity = (window.carProfile && window.carProfile.fuelTank) || 50;
+  const liveKm = typeof getLatestVehicleKm === 'function' ? getLatestVehicleKm() : 0;
+  const sFuels = (window.fuels || []).slice().sort((a, b) => new Date(a.date) - new Date(b.date) || a.km - b.km);
   const lastFullFuel = sFuels.slice().reverse().find(f => (f.isFull !== undefined ? f.isFull : f.fillLevel === 'full'));
   const diffInfoEl = document.getElementById("lastFuelDiffInfo");
 
   if (lastFullFuel && liveKm >= lastFullFuel.km) {
-    diffInfoEl.innerText = `+${(liveKm - lastFullFuel.km).toLocaleString('tr-TR')} km (${Math.max(0, Math.round((new Date() - new Date(lastFullFuel.date)) / 86400000))} gün)`;
+    if (diffInfoEl) diffInfoEl.innerText = `+${(liveKm - lastFullFuel.km).toLocaleString('tr-TR')} km (${Math.max(0, Math.round((new Date() - new Date(lastFullFuel.date)) / 86400000))} gün)`;
   } else {
-    diffInfoEl.innerText = "--";
+    if (diffInfoEl) diffInfoEl.innerText = "--";
   }
 
-  const sortedOdosWithDash = window.odoLogs.slice().filter(o => o.dashboardL100 > 0).sort((a, b) => new Date(a.date) - new Date(b.date));
+  const sortedOdosWithDash = (window.odoLogs || []).slice().filter(o => o.dashboardL100 > 0).sort((a, b) => new Date(a.date) - new Date(b.date));
   let effectiveCons = Number(sortedOdosWithDash.length ? sortedOdosWithDash[sortedOdosWithDash.length - 1].dashboardL100 : (avgConsFromHistory || 0));
 
   let remainingLiters = null;
@@ -189,25 +134,28 @@ function updateRangeEstimate(avgConsFromHistory) {
     else barsDisplay.innerText = "--";
   }
 
+  const rangeTextEl = document.getElementById("fuelRangeText");
+  const rangeRemainEl = document.getElementById("fuelRangeRemaining");
+
   if (effectiveCons > 0 && remainingLiters !== null) {
-    document.getElementById("fuelRangeText").innerText = `Tam Depo ile: ~${Math.round((tankCapacity / effectiveCons) * 100).toLocaleString('tr-TR')} km (${effectiveCons.toFixed(2)} L/100km)`;
-    document.getElementById("fuelRangeRemaining").innerText = `Kalan Tahmin: ~${Math.round((remainingLiters / effectiveCons) * 100).toLocaleString('tr-TR')} km`;
+    if (rangeTextEl) rangeTextEl.innerText = `Tam Depo ile: ~${Math.round((tankCapacity / effectiveCons) * 100).toLocaleString('tr-TR')} km (${effectiveCons.toFixed(2)} L/100km)`;
+    if (rangeRemainEl) rangeRemainEl.innerText = `Kalan Tahmin: ~${Math.round((remainingLiters / effectiveCons) * 100).toLocaleString('tr-TR')} km`;
     if (banner) {
       banner.classList.remove("hidden");
       banner.style.display = "block";
     }
   } else {
-    document.getElementById("fuelRangeText").innerText = `Depo Hacmi: ${tankCapacity} L`;
-    document.getElementById("fuelRangeRemaining").innerText = "Tüketim bekleniyor";
+    if (rangeTextEl) rangeTextEl.innerText = `Depo Hacmi: ${tankCapacity} L`;
+    if (rangeRemainEl) rangeRemainEl.innerText = "Tüketim bekleniyor";
   }
 
   const costEstEl = document.getElementById("fullTankCostEstimate");
   if (costEstEl) {
     if (remainingLiters !== null && window.liveFuelData && window.liveFuelData.fiyatlar) {
       const missingLiters = Math.max(0, tankCapacity - remainingLiters);
-      const fType = window.carProfile.fuelType || "benzin";
+      const fType = (window.carProfile && window.carProfile.fuelType) || "benzin";
       const rawPrice = window.liveFuelData.fiyatlar[fType] || "0";
-      const unitPrice = parseFloat(rawPrice.replace(",", ".")) || 0;
+      const unitPrice = parseFloat(String(rawPrice).replace(",", ".")) || 0;
       const totalCost = missingLiters * unitPrice;
       costEstEl.innerHTML = `~₺${Math.round(totalCost).toLocaleString('tr-TR')} <span class="custom-muted font-normal">(Eksik: ~${missingLiters.toFixed(1)} L)</span>`;
     } else {
@@ -223,7 +171,7 @@ function openFuelModal() {
   document.getElementById("fDocPreviewBox").classList.add("hidden");
   document.getElementById("fDate").value = getNowLocalISO();
 
-  const lk = getLatestVehicleKm();
+  const lk = typeof getLatestVehicleKm === 'function' ? getLatestVehicleKm() : 0;
   if (lk > 0) document.getElementById("fKm").value = lk;
 
   document.getElementById("fuelModalTitle").innerText = "⛽ Yeni Yakıt Alımı";
@@ -234,17 +182,17 @@ function openFuelModal() {
   document.getElementById("fuelRouteNameBox").classList.add("hidden");
   document.getElementById("fuelRouteName").value = "";
 
-  populatePaymentSelects();
+  if (typeof populatePaymentSelects === 'function') populatePaymentSelects();
   updateLpgVisibilityInApp();
   if (lk > 0) checkFuelIntervalLive(lk);
   openModalDirectly("fuelModal");
 }
 
 async function editFuel(id) {
-  const f = window.fuels.find(x => String(x.id) === String(id));
+  const f = (window.fuels || []).find(x => String(x.id) === String(id));
   if (!f) return;
 
-  populatePaymentSelects();
+  if (typeof populatePaymentSelects === 'function') populatePaymentSelects();
   document.getElementById("fId").value = f.id;
   document.getElementById("fDate").value = f.date;
   document.getElementById("fKm").value = f.km;
@@ -254,13 +202,13 @@ async function editFuel(id) {
   document.getElementById("fLiters").value = f.liters;
   document.getElementById("fTotal").value = f.total;
   document.getElementById("fDashboardL100").value = f.dashL100 || "";
-  document.getElementById("fPaymentMethod").value = f.paymentMethod || window.customPaymentMethods[0];
+  document.getElementById("fPaymentMethod").value = f.paymentMethod || (window.customPaymentMethods ? window.customPaymentMethods[0] : 'Nakit');
   document.getElementById("fIsFullCheckbox").checked = f.isFull !== undefined ? f.isFull : (f.fillLevel === 'full');
   document.getElementById("fuelStartRoute").checked = false;
   document.getElementById("fuelRouteNameBox").classList.add("hidden");
   document.getElementById("fDocId").value = f.docId || "";
 
-  if (f.docId) {
+  if (f.docId && typeof getDocFromDB === 'function') {
     const uri = await getDocFromDB(f.docId);
     if (uri && !uri.startsWith("data:application/pdf")) {
       document.getElementById("fDocThumbnail").src = uri;
@@ -285,9 +233,12 @@ function saveFuel(e) {
     const id = document.getElementById("fId").value || ("fuel_" + Date.now());
     const kmVal = parseFloat(document.getElementById("fKm").value);
     const dateVal = document.getElementById("fDate").value;
-    const check = validateTimelineOdo(dateVal, kmVal, id);
-    if (!check.isValid) {
-      if (!confirm(`${check.msg}\nYine de kaydetmek istiyor musunuz?`)) return;
+
+    if (typeof validateTimelineOdo === 'function') {
+      const check = validateTimelineOdo(dateVal, kmVal, id);
+      if (!check.isValid) {
+        if (!confirm(`${check.msg}\nYine de kaydetmek istiyor musunuz?`)) return;
+      }
     }
 
     const isFullVal = document.getElementById("fIsFullCheckbox").checked;
@@ -298,7 +249,7 @@ function saveFuel(e) {
       date: dateVal,
       km: kmVal,
       station: document.getElementById("fStation").value,
-      fuelType: window.carProfile.hasLpg ? document.getElementById("fFuelType").value : "Benzin/Dizel",
+      fuelType: (window.carProfile && window.carProfile.hasLpg) ? document.getElementById("fFuelType").value : "Benzin/Dizel",
       branch: document.getElementById("fBranch").value.trim(),
       liters: parseFloat(document.getElementById("fLiters").value),
       total: parseFloat(document.getElementById("fTotal").value),
@@ -309,6 +260,7 @@ function saveFuel(e) {
       docId: document.getElementById("fDocId").value || null
     };
 
+    if (!Array.isArray(window.fuels)) window.fuels = [];
     const idx = window.fuels.findIndex(x => String(x.id) === String(id));
     if (idx > -1) window.fuels[idx] = r;
     else window.fuels.push(r);
@@ -355,11 +307,11 @@ function saveFuel(e) {
       };
     }
 
-    persistAllData();
-    syncSelectedYearWithDate(dateVal);
+    if (typeof persistAllData === 'function') persistAllData();
+    if (typeof syncSelectedYearWithDate === 'function') syncSelectedYearWithDate(dateVal);
     closeModal("fuelModal");
-    populateYearSelector();
-    renderAll();
+    if (typeof populateYearSelector === 'function') populateYearSelector();
+    if (typeof renderAll === 'function') renderAll();
   } catch (err) {
     alert(err.message);
   }
@@ -367,16 +319,14 @@ function saveFuel(e) {
 
 function deleteFuel(id) {
   if (confirm("Bu yakıt kaydını silmek istiyor musunuz?")) {
-    window.fuels = window.fuels.filter(x => String(x.id) !== String(id));
-    persistAllData();
-    populateYearSelector();
-    renderAll();
+    window.fuels = (window.fuels || []).filter(x => String(x.id) !== String(id));
+    if (typeof persistAllData === 'function') persistAllData();
+    if (typeof populateYearSelector === 'function') populateYearSelector();
+    if (typeof renderAll === 'function') renderAll();
   }
 }
 
-// ==========================================
-// 1. MADDE: AKTİF FİLTRELEME VE LİSTE SÜZGEÇLERİ
-// ==========================================
+// --- FİLTRELEME VE LİSTE SÜZGEÇLERİ ---
 function setFuelViewFilter(mode) {
   activeFuelViewFilter = mode;
   ["all", "fuel", "odo"].forEach(m => {
@@ -387,24 +337,29 @@ function setFuelViewFilter(mode) {
         : "flex-1 py-1.5 rounded-xl custom-card border custom-muted hover:text-white font-bold transition-all";
     }
   });
-  renderFuelCards(getFilteredCombinedLogs());
+  if (typeof renderFuelCards === 'function') {
+    renderFuelCards(getFilteredCombinedLogs());
+  }
 }
 
 function getFilteredCombinedLogs() {
   let combined = [];
-  const calcF = calculateFuelMetrics(window.fuels);
+  const fuelsList = Array.isArray(window.fuels) ? window.fuels : [];
+  const odosList = Array.isArray(window.odoLogs) ? window.odoLogs : [];
+  const calcF = calculateFuelMetrics(fuelsList);
+  const curYear = (typeof selectedYear !== 'undefined') ? selectedYear : "all";
 
   if (activeFuelViewFilter === "all" || activeFuelViewFilter === "fuel") {
     calcF.forEach(f => {
-      if (selectedYear === "all" || (f.date && f.date.startsWith(selectedYear))) {
+      if (curYear === "all" || (f.date && f.date.startsWith(curYear))) {
         combined.push({ ...f, isOdoOnly: false });
       }
     });
   }
 
   if (activeFuelViewFilter === "all" || activeFuelViewFilter === "odo") {
-    window.odoLogs.forEach(o => {
-      if (selectedYear === "all" || (o.date && o.date.startsWith(selectedYear))) {
+    odosList.forEach(o => {
+      if (curYear === "all" || (o.date && o.date.startsWith(curYear))) {
         combined.push({ ...o, isOdoOnly: true });
       }
     });
