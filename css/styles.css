@@ -199,14 +199,19 @@ input[type="datetime-local"] {
   }
 }
 
-/* Başlıktaki Yıl Seçici Alanının Boyutunu Koruma */
+/* Başlıktaki Yıl Seçici Alanının Boyutunu ve Tıklanabilirliğini Koruma */
 #globalYearSelect {
-  min-height: 32px !important;
+  min-height: 34px !important;
   font-size: 11px !important;
   padding: 0.25rem 0.6rem !important;
-  min-width: 90px !important;
+  min-width: 95px !important;
   cursor: pointer !important;
   display: inline-block !important;
+  pointer-events: auto !important;
+  user-select: auto !important;
+  -webkit-user-select: auto !important;
+  position: relative !important;
+  z-index: 50 !important;
 }
 
 /* --- ROZETLER (BADGES) --- */
