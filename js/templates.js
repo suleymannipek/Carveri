@@ -8,20 +8,16 @@ let hasInitializedAccordion = false;
 function toggleCardExpansion(id) {
   if (expandedCards.has(id)) expandedCards.delete(id);
   else expandedCards.add(id);
-  if (typeof getFilteredCombinedLogs === 'function') {
-    renderFuelCards(getFilteredCombinedLogs());
-  }
+  renderFuelCards(getFilteredCombinedLogs());
 }
 
 function clearFuelSearch() {
   const input = document.getElementById("fuelSearchInput");
   if (input) {
     input.value = "";
-    if (typeof getFilteredCombinedLogs === 'function') {
-      renderFuelCards(getFilteredCombinedLogs());
-    }
-    const clearBtn = document.getElementById("fuelClearBtn");
-    if (clearBtn) clearBtn.classList.add("hidden");
+    renderFuelCards(getFilteredCombinedLogs());
+    const btn = document.getElementById("fuelClearBtn");
+    if (btn) btn.classList.add("hidden");
   }
 }
 
@@ -31,16 +27,12 @@ function toggleMonthAccordion(monthKey) {
   } else {
     openMonthAccordions.add(monthKey);
   }
-  if (typeof getFilteredCombinedLogs === 'function') {
-    renderFuelCards(getFilteredCombinedLogs());
-  }
+  renderFuelCards(getFilteredCombinedLogs());
 }
 
 function showMoreMonths() {
   maxVisibleMonths += 3;
-  if (typeof getFilteredCombinedLogs === 'function') {
-    renderFuelCards(getFilteredCombinedLogs());
-  }
+  renderFuelCards(getFilteredCombinedLogs());
 }
 
 function formatMonthTitle(monthKey) {
@@ -49,7 +41,7 @@ function formatMonthTitle(monthKey) {
   const month = parts[1];
   const monthNames = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
   const mIdx = parseInt(month, 10) - 1;
-  return (monthNames[mIdx] || month) + " " + year;
+  return `${monthNames[mIdx] || month} ${year}`;
 }
 
 // ANA KART ÇİZME FONKSİYONU
@@ -60,8 +52,7 @@ function renderFuelCards(combinedList) {
 
   if (!Array.isArray(combinedList)) combinedList = [];
 
-  const searchInput = document.getElementById("fuelSearchInput");
-  const query = (searchInput ? searchInput.value : "").toLowerCase();
+  const query = (document.getElementById("fuelSearchInput")?.value || "").toLowerCase();
   const clearBtn = document.getElementById("fuelClearBtn");
   if (clearBtn) clearBtn.classList.toggle("hidden", !query);
 
@@ -88,7 +79,7 @@ function renderFuelCards(combinedList) {
   const allFuels = Array.isArray(window.fuels) ? window.fuels : [];
   const allOdos = Array.isArray(window.odoLogs) ? window.odoLogs : [];
 
-  // +KM Fark Haritası
+  // +KM Farkı
   const allChron = [
     ...allFuels.map(f => ({ ...f, isOdoOnly: false })),
     ...allOdos.map(o => ({ ...o, isOdoOnly: true }))
@@ -100,7 +91,6 @@ function renderFuelCards(combinedList) {
     if (diff > 0) stepDiffMap[allChron[i].id] = diff;
   }
 
-  // Yakıtlar Arası Mesafe ve Birim Maliyet
   const sortedFuelsOnly = allFuels.slice().sort((a, b) => new Date(a.date) - new Date(b.date) || a.km - b.km);
   let fuelDistMap = {};
   for (let i = 0; i < sortedFuelsOnly.length; i++) {
@@ -113,7 +103,6 @@ function renderFuelCards(combinedList) {
     }
   }
 
-  // KM Girişleri Arası Tüketim & Tahmini Harcama
   let odoCostMap = {};
   const sortedOdosOnly = allOdos.slice().sort((a, b) => new Date(a.date) - new Date(b.date) || a.km - b.km);
   for (let i = 1; i < sortedOdosOnly.length; i++) {
@@ -149,7 +138,6 @@ function renderFuelCards(combinedList) {
     }
   }
 
-  // Aylık Gruplama
   const monthGroups = {};
   filtered.forEach(item => {
     const monthKey = item.date ? item.date.substring(0, 7) : "Diğer";
@@ -208,104 +196,30 @@ function renderFuelCards(combinedList) {
       grp.items.forEach(item => {
         const card = document.createElement("div");
         card.className = "custom-card p-3.5 shadow text-xs transition-all";
-        const dateFormatted = typeof formatDateTimeLabel === 'function' ? formatDateTimeLabel(item.date) : item.date;
+        const dateFormatted = formatDateTimeLabel(item.date);
         const stepKm = stepDiffMap[item.id];
         const kmBadge = stepKm ? `<span class="theme-badge-green font-black px-1.5 py-0.5 rounded text-[9px]">+${stepKm.toLocaleString('tr-TR')} km</span>` : "";
 
-        // KM KARTI
         if (item.isOdoOnly) {
-          const fuelTag = (item.fuelPercent !== null && item.fuelPercent !== undefined) ? `<span class="theme-badge-cyan font-black px-1.5 py-0.5 rounded text-[9px]">⛽ %${item.fuelPercent}</span>` : "";
-          const dashTag = item.dashboardL100 ? `<span class="theme-badge-amber font-bold px-1.5 py-0.5 rounded text-[9px]">Ort: ${item.dashboardL100} L</span>` : "";
+          let fuelTag = (item.fuelPercent !== null && item.fuelPercent !== undefined) ? `<span class="theme-badge-green font-black px-1.5 py-0.5 rounded text-[9px]">⛽ %${item.fuelPercent}</span>` : "";
+          let dashTag = item.dashboardL100 ? `<span class="theme-badge-amber font-bold px-1.5 py-0.5 rounded text-[9px]">Ort: ${item.dashboardL100} L</span>` : "";
 
           const cMeta = odoCostMap[item.id];
           let tripCostTag = "";
           if (cMeta && cMeta.cost) {
-            tripCostTag = `<span class="theme-badge-blue font-black px-1.5 py-0.5 rounded text-[9px]">~₺${cMeta.cost.toLocaleString('tr-TR')} (${cMeta.liters} L)</span>`;
+            tripCostTag = `<span class="theme-badge-cyan font-black px-1.5 py-0.5 rounded text-[9px]" title="Tahmini Harcanan: ${cMeta.liters || '--'} L (~${cMeta.costPerKm || '--'} ₺/km)">~₺${cMeta.cost.toLocaleString('tr-TR')} (${cMeta.liters} L)</span>`;
           }
-
-          const customNote = (item.note && item.note !== "Manuel KM") ? `<div class="text-[10px] custom-muted mt-1 font-medium">${item.note}</div>` : "";
-
-          card.innerHTML = `
-            <div class="flex justify-between items-start gap-2">
-              <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-1.5 mb-1.5 flex-wrap">
-                  <span class="font-black text-xs text-indigo-400">📍 ${item.km.toLocaleString('tr-TR')} km</span>
-                  <span class="theme-badge-purple font-bold px-1.5 py-0.5 rounded text-[9px]">KM Kaydı</span>
-                  ${kmBadge}
-                  ${fuelTag}
-                  ${dashTag}
-                  ${tripCostTag}
-                </div>
-                <div class="text-[10px] custom-muted font-semibold">${dateFormatted}</div>
-                ${customNote}
-              </div>
-              <div class="flex items-center gap-2 shrink-0 pt-0.5">
-                <button type="button" onclick="openOdoModal('${item.id}')" title="Düzenle" class="p-1 hover:bg-slate-700/20 rounded text-xs transition-colors">✏️</button>
-                <button type="button" onclick="deleteOdoLog('${item.id}')" title="Sil" class="p-1 hover:bg-rose-500/20 rounded text-xs transition-colors">🗑️</button>
-              </div>
-            </div>
-          `;
+          card.innerHTML = `<div class="flex justify-between items-center"><div><div class="flex items-center gap-2 mb-1 flex-wrap"><span class="font-black text-xs text-indigo-400">📍 KM Kaydı</span>${kmBadge}${dashTag}${fuelTag}${tripCostTag}</div><div class="text-[11px] font-bold">${item.km.toLocaleString('tr-TR')} KM</div>${item.note ? `<div class="text-[10px] custom-muted mt-0.5">${item.note}</div>` : ''}</div><div class="text-right"><div class="text-[10px] custom-muted">${dateFormatted}</div><button onclick="deleteOdoLog('${item.id}')" class="text-[10px] text-rose-500 hover:underline mt-1">Sil</button></div></div>`;
         } else {
-          // YAKIT KARTI
           const isExp = expandedCards.has(item.id);
           const meta = fuelDistMap[item.id];
-          const unitPrice = item.liters > 0 ? (item.total / item.liters).toFixed(2) : "0.00";
+          const unitPrice = (item.total / item.liters).toFixed(2);
           const isFull = item.isFull !== undefined ? item.isFull : (item.fillLevel === 'full');
-          const fillBadge = isFull ? `<span class="theme-badge-green font-black px-2 py-0.5 rounded text-[10px]">Tam Depo</span>` : `<span class="theme-badge-amber font-black px-2 py-0.5 rounded text-[10px]">Ara Dolum</span>`;
-          const compBadge = (item.consumption && isFull) ? `<span class="theme-badge-cyan font-black px-2 py-0.5 rounded-md text-[10px] ml-1">Gerçek: ${item.consumption} L/100km</span>` : "";
-          const diffDisplay = (item.consumption && item.dashL100 && isFull) ? `<div class="text-[9px] text-amber-600 dark:text-amber-400 font-bold mt-1">📊 Pompa: ${item.consumption} L • Gösterge: ${item.dashL100} L</div>` : "";
+          let fillBadge = isFull ? `<span class="theme-badge-green font-black px-2 py-0.5 rounded text-[10px]">Tam Depo</span>` : `<span class="theme-badge-amber font-black px-2 py-0.5 rounded text-[10px]">Ara Dolum</span>`;
+          let compBadge = (item.consumption && isFull) ? `<span class="theme-badge-cyan font-black px-2 py-0.5 rounded-md text-[10px] ml-1">Gerçek: ${item.consumption} L/100km</span>` : "";
+          let diffDisplay = (item.consumption && item.dashL100 && isFull) ? `<div class="text-[9px] text-amber-600 dark:text-amber-400 font-bold mt-1">📊 Pompa: ${item.consumption} L • Gösterge: ${item.dashL100} L (Fark: ${(item.consumption - item.dashL100).toFixed(2) > 0 ? '+' : ''}${(item.consumption - item.dashL100).toFixed(2)} L)</div>` : "";
 
-          card.innerHTML = `
-            <div onclick="toggleCardExpansion('${item.id}')" class="cursor-pointer">
-              <div class="flex justify-between items-center">
-                <div>
-                  <div class="flex items-center gap-1.5 mb-1 flex-wrap">
-                    <span class="font-black text-xs text-indigo-400">📍 ${item.km.toLocaleString('tr-TR')} km</span>
-                    ${kmBadge}
-                    <span class="theme-badge-blue font-bold px-2 py-0.5 rounded-md text-[10px]">${item.station}</span>
-                    <span class="theme-badge-purple font-bold px-2 py-0.5 rounded-md text-[10px]">${item.paymentMethod || 'Nakit'}</span>
-                    ${fillBadge}
-                    ${compBadge}
-                  </div>
-                  <div class="custom-muted text-[10px] font-semibold">${dateFormatted} • ${item.liters} L • ${unitPrice} ₺/L</div>
-                  ${diffDisplay}
-                </div>
-                <div class="text-right">
-                  <span class="font-black text-sm">₺${parseFloat(item.total).toLocaleString('tr-TR')}</span>
-                  <div class="text-[10px] custom-muted mt-1 font-bold">${isExp ? '▲ Kapat' : '▼ Detay'}</div>
-                </div>
-              </div>
-            </div>
-            ${isExp ? `
-              <div class="pt-2.5 mt-2.5 border-t border-slate-700/40 space-y-2.5">
-                <div class="grid grid-cols-2 gap-2 text-[10px] p-2.5 theme-sub-box rounded-xl">
-                  <div>
-                    <span class="custom-muted block text-[9px] font-bold">Önceki Yakıttan Yol</span>
-                    <span class="font-black text-blue-600 dark:text-blue-400">${meta ? '+' + meta.dist.toLocaleString('tr-TR') + ' km (' + meta.days + ' gün)' : 'İlk dolum'}</span>
-                  </div>
-                  <div>
-                    <span class="custom-muted block text-[9px] font-bold">Birim Maliyet</span>
-                    <span class="font-black text-emerald-600 dark:text-emerald-400">${meta ? meta.costPerKm + ' ₺/km' : '--'}</span>
-                  </div>
-                  <div>
-                    <span class="custom-muted block text-[9px] font-bold">Şube / Ödeme</span>
-                    <span class="font-black truncate block">${item.branch \vert{}\vert{} 'Merkez'} •${item.paymentMethod || 'Nakit'}</span>
-                  </div>
-                  <div>
-                    <span class="custom-muted block text-[9px] font-bold">Litre Fiyatı</span>
-                    <span class="font-black text-cyan-600 dark:text-cyan-400">${unitPrice} ₺/L</span>
-                  </div>
-                </div>
-                <div class="flex justify-between items-center pt-1">
-                  ${item.docId ? `<button type="button" onclick="viewDocumentById('${item.docId}')" class="text-cyan-600 dark:text-cyan-400 font-black text-[11px] flex items-center gap-1"><span>📄</span> Fişi Görüntüle</button>` : '<span></span>'}
-                  <div class="flex gap-3 font-bold text-[11px]">
-                    <button type="button" onclick="editFuel('${item.id}')" class="text-blue-600 hover:underline">Düzenle</button>
-                    <button type="button" onclick="deleteFuel('${item.id}')" class="text-rose-500 hover:underline">Sil</button>
-                  </div>
-                </div>
-              </div>
-            ` : ''}
-          `;
+          card.innerHTML = `<div onclick="toggleCardExpansion('${item.id}')" class="cursor-pointer"><div class="flex justify-between items-center"><div><div class="flex items-center gap-1.5 mb-1 flex-wrap"><span class="font-black text-xs text-indigo-600 dark:text-indigo-400">📍 ${item.km.toLocaleString('tr-TR')} km</span> ${kmBadge}<span class="theme-badge-blue font-bold px-2 py-0.5 rounded-md text-[10px]">${item.station}</span><span class="theme-badge-purple font-bold px-2 py-0.5 rounded-md text-[10px]">${item.paymentMethod || 'Nakit'}</span>${fillBadge} ${compBadge}</div><div class="custom-muted text-[10px] font-semibold">${dateFormatted} • ${item.liters} L • ${unitPrice} ₺/L</div>${diffDisplay}</div><div class="text-right"><span class="font-black text-sm">₺${parseFloat(item.total).toLocaleString('tr-TR')}</span><div class="text-[10px] custom-muted mt-1 font-bold">${isExp ? '▲ Kapat' : '▼ Detay'}</div></div></div></div>${isExp ? `<div class="pt-2.5 mt-2.5 border-t border-slate-700/40 space-y-2.5"><div class="grid grid-cols-2 gap-2 text-[10px] p-2.5 theme-sub-box rounded-xl"><div><span class="custom-muted block text-[9px] font-bold">Önceki Yakıttan Yol</span><span class="font-black text-blue-600 dark:text-blue-400">${meta ? '+' + meta.dist.toLocaleString('tr-TR') + ' km (' + meta.days + ' gün)' : 'İlk dolum'}</span></div><div><span class="custom-muted block text-[9px] font-bold">Birim Maliyet</span><span class="font-black text-emerald-600 dark:text-emerald-400">${meta ? meta.costPerKm + ' ₺/km' : '--'}</span></div><div><span class="custom-muted block text-[9px] font-bold">Şube / Ödeme</span><span class="font-black truncate block">${item.branch \vert{}\vert{} 'Merkez'} •${item.paymentMethod || 'Nakit'}</span></div><div><span class="custom-muted block text-[9px] font-bold">Litre Fiyatı</span><span class="font-black text-cyan-600 dark:text-cyan-400">${unitPrice} ₺/L</span></div></div><div class="flex justify-between items-center pt-1">${item.docId ? `<button onclick="viewDocumentById('${item.docId}')" class="text-cyan-600 dark:text-cyan-400 font-black text-[11px] flex items-center gap-1"><span>📄</span> Fişi Görüntüle</button>` : '<span></span>'}<div class="flex gap-3 font-bold text-[11px]"><button onclick="editFuel('${item.id}')" class="text-blue-600 hover:underline">Düzenle</button><button onclick="deleteFuel('${item.id}')" class="text-rose-500 hover:underline">Sil</button></div></div></div>` : ''}`;
         }
         cardsWrapper.appendChild(card);
       });
@@ -314,4 +228,19 @@ function renderFuelCards(combinedList) {
 
     container.appendChild(section);
   });
+
+  if (!query && sortedMonthKeys.length > maxVisibleMonths) {
+    const remainingMonths = sortedMonthKeys.length - maxVisibleMonths;
+    const btnBox = document.createElement("div");
+    btnBox.className = "pt-2 text-center";
+    btnBox.innerHTML = `
+      <button onclick="showMoreMonths()" class="w-full py-2.5 rounded-xl custom-card border text-[11px] font-black text-cyan-500 hover:border-cyan-500 transition-all shadow-sm">
+        📅 Daha Eski Ayları Göster (+${Math.min(3, remainingMonths)} Ay)
+      </button>
+    `;
+    container.appendChild(btnBox);
+  }
 }
+
+// Orijinal koddaki Cards() çağrısını desteklemesi için takma ad:
+window.Cards = renderFuelCards;
