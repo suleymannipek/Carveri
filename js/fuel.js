@@ -10,11 +10,17 @@ function updateLpgVisibilityInApp() {
 }
 
 function checkFuelAnomalyLive() {
-  const d = document.getElementById("fDate").value;
-  const km = parseFloat(document.getElementById("fKm").value);
-  const editId = document.getElementById("fId").value;
+  const dEl = document.getElementById("fDate");
+  const kmEl = document.getElementById("fKm");
+  const editIdEl = document.getElementById("fId");
   const warnEl = document.getElementById("fuelAnomalyWarning");
+  if (!dEl || !kmEl || !warnEl) return;
   if (typeof validateTimelineOdo !== 'function') return;
+
+  const d = dEl.value;
+  const km = parseFloat(kmEl.value);
+  const editId = editIdEl ? editIdEl.value : "";
+
   const res = validateTimelineOdo(d, km, editId);
   if (!res.isValid) {
     warnEl.innerText = res.msg;
@@ -28,13 +34,16 @@ function checkFuelAnomalyLive() {
 
 function checkFuelIntervalLive(val) {
   const km = parseFloat(val);
-  const dateVal = document.getElementById("fDate").value || getNowLocalISO();
-  const editId = document.getElementById("fId").value;
+  const dateVal = document.getElementById("fDate")?.value || getNowLocalISO();
+  const editId = document.getElementById("fId")?.value || "";
   const badge = document.getElementById("fuelIntervalBadge");
   const textEl = document.getElementById("fuelIntervalText");
 
   if (!badge || !textEl || isNaN(km) || km <= 0) {
-    if (badge) badge.classList.add("hidden");
+    if (badge) {
+      badge.classList.add("hidden");
+      badge.style.display = "none";
+    }
     return;
   }
 
@@ -165,22 +174,36 @@ function updateRangeEstimate(avgConsFromHistory) {
 }
 
 function openFuelModal() {
-  document.getElementById("fuelForm").reset();
-  document.getElementById("fId").value = "";
-  document.getElementById("fDocId").value = "";
-  document.getElementById("fDocPreviewBox").classList.add("hidden");
-  document.getElementById("fDate").value = getNowLocalISO();
+  document.getElementById("fuelForm")?.reset();
+  const fId = document.getElementById("fId");
+  if (fId) fId.value = "";
+  const fDocId = document.getElementById("fDocId");
+  if (fDocId) fDocId.value = "";
+  const prevBox = document.getElementById("fDocPreviewBox");
+  if (prevBox) prevBox.classList.add("hidden");
+  
+  const fDate = document.getElementById("fDate");
+  if (fDate) fDate.value = getNowLocalISO();
 
   const lk = typeof getLatestVehicleKm === 'function' ? getLatestVehicleKm() : 0;
-  if (lk > 0) document.getElementById("fKm").value = lk;
+  const fKm = document.getElementById("fKm");
+  if (lk > 0 && fKm) fKm.value = lk;
 
-  document.getElementById("fuelModalTitle").innerText = "⛽ Yeni Yakıt Alımı";
-  document.getElementById("fuelAnomalyWarning").classList.add("hidden");
-  document.getElementById("fuelIntervalBadge").classList.add("hidden");
-  document.getElementById("fIsFullCheckbox").checked = true;
-  document.getElementById("fuelStartRoute").checked = false;
-  document.getElementById("fuelRouteNameBox").classList.add("hidden");
-  document.getElementById("fuelRouteName").value = "";
+  const title = document.getElementById("fuelModalTitle");
+  if (title) title.innerText = "⛽ Yeni Yakıt Alımı";
+
+  document.getElementById("fuelAnomalyWarning")?.classList.add("hidden");
+  document.getElementById("fuelIntervalBadge")?.classList.add("hidden");
+  
+  const isFull = document.getElementById("fIsFullCheckbox");
+  if (isFull) isFull.checked = true;
+  
+  const startRoute = document.getElementById("fuelStartRoute");
+  if (startRoute) startRoute.checked = false;
+
+  document.getElementById("fuelRouteNameBox")?.classList.add("hidden");
+  const rName = document.getElementById("fuelRouteName");
+  if (rName) rName.value = "";
 
   if (typeof populatePaymentSelects === 'function') populatePaymentSelects();
   updateLpgVisibilityInApp();
@@ -205,23 +228,29 @@ async function editFuel(id) {
   document.getElementById("fPaymentMethod").value = f.paymentMethod || (window.customPaymentMethods ? window.customPaymentMethods[0] : 'Nakit');
   document.getElementById("fIsFullCheckbox").checked = f.isFull !== undefined ? f.isFull : (f.fillLevel === 'full');
   document.getElementById("fuelStartRoute").checked = false;
-  document.getElementById("fuelRouteNameBox").classList.add("hidden");
+  document.getElementById("fuelRouteNameBox")?.classList.add("hidden");
   document.getElementById("fDocId").value = f.docId || "";
 
   if (f.docId && typeof getDocFromDB === 'function') {
     const uri = await getDocFromDB(f.docId);
     if (uri && !uri.startsWith("data:application/pdf")) {
-      document.getElementById("fDocThumbnail").src = uri;
-      document.getElementById("fDocThumbnail").classList.remove("hidden");
+      const thumb = document.getElementById("fDocThumbnail");
+      if (thumb) {
+        thumb.src = uri;
+        thumb.classList.remove("hidden");
+      }
     }
-    document.getElementById("fDocPreviewBox").classList.remove("hidden");
-    document.getElementById("fDocPreviewBox").style.display = "flex";
+    const prevBox = document.getElementById("fDocPreviewBox");
+    if (prevBox) {
+      prevBox.classList.remove("hidden");
+      prevBox.style.display = "flex";
+    }
   } else {
-    document.getElementById("fDocPreviewBox").classList.add("hidden");
+    document.getElementById("fDocPreviewBox")?.classList.add("hidden");
   }
 
   document.getElementById("fuelModalTitle").innerText = "Yakıtı Düzenle";
-  document.getElementById("fuelAnomalyWarning").classList.add("hidden");
+  document.getElementById("fuelAnomalyWarning")?.classList.add("hidden");
   checkFuelIntervalLive(f.km);
   updateLpgVisibilityInApp();
   openModalDirectly("fuelModal");
