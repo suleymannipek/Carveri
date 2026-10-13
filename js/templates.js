@@ -41,10 +41,9 @@ function formatMonthTitle(monthKey) {
   const month = parts[1];
   const monthNames = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
   const mIdx = parseInt(month, 10) - 1;
-  return `${monthNames[mIdx] || month} ${year}`;
+  return (monthNames[mIdx] || month) + " " + year;
 }
 
-// ANA KART ÇİZME FONKSİYONU
 function renderFuelCards(combinedList) {
   const container = document.getElementById("fuelCardsList");
   if (!container) return;
@@ -79,7 +78,6 @@ function renderFuelCards(combinedList) {
   const allFuels = Array.isArray(window.fuels) ? window.fuels : [];
   const allOdos = Array.isArray(window.odoLogs) ? window.odoLogs : [];
 
-  // +KM Farkı
   const allChron = [
     ...allFuels.map(f => ({ ...f, isOdoOnly: false })),
     ...allOdos.map(o => ({ ...o, isOdoOnly: true }))
@@ -125,7 +123,7 @@ function renderFuelCards(combinedList) {
       if (unitPrice === 0 && window.liveFuelData && window.liveFuelData.fiyatlar) {
         const fType = (window.carProfile && window.carProfile.fuelType) || "benzin";
         const rawPrice = window.liveFuelData.fiyatlar[fType] || "0";
-        unitPrice = parseFloat(rawPrice.replace(",", ".")) || 0;
+        unitPrice = parseFloat(String(rawPrice).replace(",", ".")) || 0;
       }
 
       const estCost = burnedLiters > 0 && unitPrice > 0 ? (burnedLiters * unitPrice) : null;
@@ -140,7 +138,7 @@ function renderFuelCards(combinedList) {
 
   const monthGroups = {};
   filtered.forEach(item => {
-    const monthKey = item.date ? item.date.substring(0, 7) : "Diğer";
+    const monthKey = item.date ? item.date.substring(0, 7) : "Diger";
     if (!monthGroups[monthKey]) {
       monthGroups[monthKey] = { items: [], totalFuelExpense: 0, totalLiters: 0, count: 0 };
     }
@@ -168,7 +166,7 @@ function renderFuelCards(combinedList) {
   visibleMonthKeys.forEach(mKey => {
     const grp = monthGroups[mKey];
     const isOpen = openMonthAccordions.has(mKey);
-    const monthTitle = mKey !== "Diğer" ? formatMonthTitle(mKey) : "Tarihsiz Kayıtlar";
+    const monthTitle = mKey !== "Diger" ? formatMonthTitle(mKey) : "Tarihsiz Kayitlar";
 
     const section = document.createElement("div");
     section.className = "space-y-2";
@@ -242,5 +240,4 @@ function renderFuelCards(combinedList) {
   }
 }
 
-// Orijinal koddaki Cards() çağrısını desteklemesi için takma ad:
 window.Cards = renderFuelCards;
