@@ -163,10 +163,9 @@ async function fetchLiveFuelPrices() {
   try {
     if (badge) badge.innerText = "Yükleniyor...";
     const res = await fetch(`${FUEL_PRICE_WORKER_URL}?t=${Date.now()}`);
-    if (!res.ok) throw new Error("Ağ yanıtı başarısız");
+    if (!res.ok) throw new Error("Ağ yanıtı başarısız: " + res.status);
     const data = await res.json();
-    
-    // Gelen veri doğrudan nesne veya 'fiyatlar' altında olabilir
+
     const prices = data.fiyatlar || data;
     if (prices) {
       window.liveFuelData = {
@@ -175,7 +174,7 @@ async function fetchLiveFuelPrices() {
           motorin: prices.motorin || prices.dizel || prices.diesel || "--",
           lpg: prices.lpg || prices.otogaz || prices.autogas || "--"
         },
-        guncelleme: data.guncelleme || data.tarih || data.updated_at || "Canlı"
+        guncelleme: data.tarih || data.guncelleme || "Canlı"
       };
       localStorage.setItem(STORAGE_PREFIX + "live_fuel_prices", JSON.stringify(window.liveFuelData));
       renderLiveFuelCard();
