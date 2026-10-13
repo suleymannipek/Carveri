@@ -45,7 +45,7 @@ if (window.matchMedia) {
   });
 }
 
-// YAZI BOYUTU YÖNETİMİ
+// YAZI BOYUTU
 const fontSizes = { 
   small: { size: '14px', label: '%100' }, 
   medium: { size: '16px', label: '%115' }, 
@@ -77,36 +77,40 @@ function setFontSize(key) {
 const tabsList = ["dashboard", "fuel", "expenses", "tires", "backup"];
 
 function switchTab(tab) {
-  tabsList.forEach(t => {
-    const tabKey = t.charAt(0).toUpperCase() + t.slice(1);
-    const el = document.getElementById("tab" + tabKey);
-    const btn = document.getElementById("nav" + tabKey);
-    if (el) el.classList.add("hidden");
-    if (btn) {
-      btn.className = "nav-btn flex flex-col items-center py-1.5 px-3 rounded-2xl custom-muted font-medium transition-all cursor-pointer";
+  try {
+    tabsList.forEach(t => {
+      const tabKey = t.charAt(0).toUpperCase() + t.slice(1);
+      const el = document.getElementById("tab" + tabKey);
+      const btn = document.getElementById("nav" + tabKey);
+      if (el) el.classList.add("hidden");
+      if (btn) {
+        btn.className = "nav-btn flex flex-col items-center py-1.5 px-3 rounded-2xl custom-muted font-medium transition-all cursor-pointer";
+      }
+    });
+
+    const activeKey = tab.charAt(0).toUpperCase() + tab.slice(1);
+    const activeEl = document.getElementById("tab" + activeKey);
+    const activeBtn = document.getElementById("nav" + activeKey);
+    if (activeEl) activeEl.classList.remove("hidden");
+    if (activeBtn) {
+      activeBtn.className = "nav-btn flex flex-col items-center py-1.5 px-3 rounded-2xl bg-blue-600/20 text-cyan-600 dark:text-cyan-400 font-black transition-all cursor-pointer";
     }
-  });
 
-  const activeKey = tab.charAt(0).toUpperCase() + tab.slice(1);
-  const activeEl = document.getElementById("tab" + activeKey);
-  const activeBtn = document.getElementById("nav" + activeKey);
-  if (activeEl) activeEl.classList.remove("hidden");
-  if (activeBtn) {
-    activeBtn.className = "nav-btn flex flex-col items-center py-1.5 px-3 rounded-2xl bg-blue-600/20 text-cyan-600 dark:text-cyan-400 font-black transition-all cursor-pointer";
-  }
-
-  if (tab === 'fuel' && typeof renderFuelCards === 'function') {
-    renderFuelCards(getFilteredCombinedLogs());
-  }
-  if (tab === 'expenses' && typeof renderExpenseCards === 'function') {
-    renderExpenseCards();
-  }
-  if (tab === 'tires' && typeof renderTiresTab === 'function') {
-    renderTiresTab();
+    if (tab === 'fuel' && typeof renderFuelCards === 'function' && typeof getFilteredCombinedLogs === 'function') {
+      renderFuelCards(getFilteredCombinedLogs());
+    }
+    if (tab === 'expenses' && typeof renderExpenseCards === 'function') {
+      renderExpenseCards();
+    }
+    if (tab === 'tires' && typeof renderTiresTab === 'function') {
+      renderTiresTab();
+    }
+  } catch (err) {
+    console.error("Sekme geçiş hatası:", err);
   }
 }
 
-// MODAL AÇMA / KAPAMA
+// MODAL AÇ/KAPAT
 function openModalDirectly(id) {
   const el = document.getElementById(id);
   if (el) {
@@ -149,7 +153,7 @@ if (window.visualViewport) {
   });
 }
 
-// YIL FİLTRELEME
+// YIL SEÇİCİ
 const currentSystemYear = new Date().getFullYear().toString();
 let selectedYear = localStorage.getItem(STORAGE_PREFIX + "selected_year") || currentSystemYear;
 
@@ -207,190 +211,185 @@ function toggleUpdatesAccordion() {
   }
 }
 
-// SABİT VE DEĞİŞKEN GİDER TÜRLERİ
-const EXPENSE_TYPES = { 
-  FIXED: ["Kasko", "Trafik Sigortası", "MTV (1. Taksit - Ocak)", "MTV (2. Taksit - Temmuz)", "TÜVTÜRK Muayene"], 
-  VARIABLE: ["Periyodik Bakım", "Parça Değişimi & Onarım", "Lastik Tamir / Değişim", "Oto Yıkama & Temizlik", "Diğer"] 
-};
-
-// ANA EKRAN VE GÖSTERGE HESAPLAMA MOTORU (ORİJİNAL RENDERALL)
-function renderAll() {
-  if (typeof applyCarProfile === 'function') applyCarProfile();
-  if (typeof populatePaymentSelects === 'function') populatePaymentSelects();
-
-  const allFuels = Array.isArray(window.fuels) ? window.fuels : [];
-  const allExpenses = Array.isArray(window.expenses) ? window.expenses : [];
-  const allOdoLogs = Array.isArray(window.odoLogs) ? window.odoLogs : [];
-
-  const ff = allFuels.filter(f => selectedYear === "all" || (f.date && f.date.startsWith(selectedYear)));
-  const fe = allExpenses.filter(e => selectedYear === "all" || (e.date && e.date.startsWith(selectedYear)));
-  const cf = (typeof calculateFuelMetrics === 'function') ? calculateFuelMetrics(ff) : ff;
-
-  const dTitle = document.getElementById("dashPeriodTitle");
-  const fInd = document.getElementById("fuelPeriodIndicator");
-  const dEntries = document.getElementById("dashTotalEntries");
-
-  if (dTitle) dTitle.innerText = `Dönem: ${selectedYear === "all" ? "Tüm Zamanlar" : selectedYear}`;
-  if (fInd) fInd.innerText = `Gösterilen: ${selectedYear === "all" ? "Tüm Zamanlar" : selectedYear}`;
-  if (dEntries) dEntries.innerText = `${ff.length + fe.length} Kayıt`;
-
-  let tfc = 0, tl = 0; 
-  ff.forEach(f => { tfc += (f.total || 0); tl += (f.liters || 0); });
-
-  let fc = 0, vc = tfc; 
-  fe.forEach(e => { 
-    if (EXPENSE_TYPES.FIXED.includes(e.type)) fc += (e.amount || 0); 
-    else vc += (e.amount || 0); 
-  });
-
-  const sFuelExp = document.getElementById("statFuelExpense");
-  const sFuelVol = document.getElementById("statFuelVolume");
-  const sTotOwn = document.getElementById("statTotalOwnership");
-  const fixEl = document.getElementById("statFixedExpenseVal");
-  const sVarExp = document.getElementById("statVariableExpense");
-
-  if (sFuelExp) sFuelExp.innerText = `₺${Math.round(tfc).toLocaleString('tr-TR')}`;
-  if (sFuelVol) sFuelVol.innerText = `Hacim: ${tl.toFixed(1)} L`;
-  if (sTotOwn) sTotOwn.innerText = `₺${Math.round(fc + vc).toLocaleString('tr-TR')}`;
-  if (fixEl) fixEl.innerText = `₺${Math.round(fc).toLocaleString('tr-TR')}`;
-  if (sVarExp) sVarExp.innerText = `₺${Math.round(vc).toLocaleString('tr-TR')}`;
-
-  const sbd = cf.slice().sort((a, b) => new Date(a.date) - new Date(b.date));
-  let currentAvgCons = null;
-  let dK = 0;
-
-  const sTotDist = document.getElementById("statTotalDistance");
-  const sCostPerKm = document.getElementById("statCostPerKm");
-  const sLatestCons = document.getElementById("statLatestCons");
-  const sAvgCons = document.getElementById("statAvgCons");
-
-  if (sbd.length >= 2) {
-    dK = sbd[sbd.length - 1].km - sbd[0].km;
-    if (sTotDist) sTotDist.innerText = `Mesafe: ${dK > 0 ? dK.toLocaleString('tr-TR') : 0} km`;
-    if (sCostPerKm) sCostPerKm.innerText = dK > 0 ? (tfc / dK).toFixed(2) : "--";
-    let vcL = cf.filter(f => f.consumption).map(f => parseFloat(f.consumption));
-    if (vcL.length) {
-      if (sLatestCons) sLatestCons.innerText = vcL[vcL.length - 1].toFixed(2);
-      currentAvgCons = (vcL.reduce((a, b) => a + b, 0) / vcL.length);
-      if (sAvgCons) sAvgCons.innerText = `Dönem Ort: ${currentAvgCons.toFixed(2)} L`;
-    }
-  } else {
-    if (sLatestCons) sLatestCons.innerText = "--"; 
-    if (sAvgCons) sAvgCons.innerText = "Dönem Ort: -- L";
-    if (sCostPerKm) sCostPerKm.innerText = "--"; 
-    if (sTotDist) sTotDist.innerText = "Mesafe: 0 km";
-  }
-
-  // YOL BİLGİSAYARI İLE GERÇEK TÜKETİM SAPMA ANALİZİ
-  let diffSum = 0, diffCount = 0;
-  cf.forEach(f => {
-    if (f.consumption && (f.isFull !== undefined ? f.isFull : (f.fillLevel === 'full'))) {
-      const pumpVal = parseFloat(f.consumption);
-      const dashVal = (f.dashL100 !== null && f.dashL100 !== undefined) ? parseFloat(f.dashL100) : NaN;
-      if (!isNaN(pumpVal) && pumpVal > 0 && !isNaN(dashVal) && dashVal > 0) {
-        diffSum += (pumpVal - dashVal);
-        diffCount++;
-      }
-    }
-  });
-
-  const biasValEl = document.getElementById("statDashBiasVal");
-  const biasDescEl = document.getElementById("statDashBiasDesc");
-  if (diffCount > 0) {
-    const avgDiff = diffSum / diffCount;
-    const sign = avgDiff >= 0 ? "+" : "";
-    if (biasValEl) biasValEl.innerText = `${sign}${avgDiff.toFixed(2)} L/100km`;
-    if (biasDescEl) {
-      biasDescEl.innerText = avgDiff >= 0 
-        ? `Ekran ort. %${((avgDiff / (currentAvgCons || 6.5)) * 100).toFixed(1)} iyimser` 
-        : `Ekran ort. %${((Math.abs(avgDiff) / (currentAvgCons || 6.5)) * 100).toFixed(1)} kötümser`;
-    }
-  } else {
-    if (biasValEl) biasValEl.innerText = "--";
-    if (biasDescEl) biasDescEl.innerText = "Yeterli karşılaştırma yok";
-  }
-
-  // YILLIK KULLANIM YOĞUNLUĞU VE PROJEKSİYON
-  const paceValEl = document.getElementById("statUsagePaceVal");
-  const projDescEl = document.getElementById("statUsageProjDesc");
-  const now = new Date();
-  const isCurYear = (selectedYear === now.getFullYear().toString());
-  
-  const allYearEvents = [
-    ...ff, 
-    ...allOdoLogs.filter(o => selectedYear === "all" || (o.date && o.date.startsWith(selectedYear)))
-  ].sort((a,b) => new Date(a.date) - new Date(b.date));
-  
-  if (allYearEvents.length >= 2) {
-    const firstEvent = allYearEvents[0];
-    const lastEvent = allYearEvents[allYearEvents.length - 1];
-    const netYKm = lastEvent.km - firstEvent.km;
-
-    const d1 = new Date(firstEvent.date);
-    const d2 = new Date(lastEvent.date);
-    const daySpan = Math.max(1, Math.round((d2 - d1) / (1000 * 60 * 60 * 24)));
-
-    const dailyAvg = netYKm / daySpan;
-    const monthlyAvg = Math.round(dailyAvg * 30.4);
-
-    if (isCurYear) {
-      const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59);
-      const remainingDays = Math.max(0, Math.ceil((endOfYear - d2) / (1000 * 60 * 60 * 24)));
-      const projectedKm = Math.round(lastEvent.km + (dailyAvg * remainingDays));
-
-      if (paceValEl) paceValEl.innerText = `~${monthlyAvg.toLocaleString('tr-TR')} km/ay`;
-      if (projDescEl) projDescEl.innerText = `${daySpan} güne göre yıl sonu tahmini: ~${projectedKm.toLocaleString('tr-TR')} KM`;
-    } else if (selectedYear !== "all") {
-      if (paceValEl) paceValEl.innerText = `~${monthlyAvg.toLocaleString('tr-TR')} km/ay`;
-      if (projDescEl) projDescEl.innerText = `Dönem içi toplam: ${netYKm.toLocaleString('tr-TR')} KM (${daySpan} gün)`;
-    } else {
-      if (paceValEl) paceValEl.innerText = `${netYKm.toLocaleString('tr-TR')} KM`;
-      if (projDescEl) projDescEl.innerText = `Tüm zamanlar toplam yol (${daySpan} gün)`;
-    }
-  } else {
-    if (paceValEl) paceValEl.innerText = "-- km/ay";
-    if (projDescEl) projDescEl.innerText = "En az 2 sayaç kaydı gerekli";
-  }
-
-  if (typeof updateRangeEstimate === 'function') updateRangeEstimate(currentAvgCons); 
-  if (typeof updateActiveRouteBanner === 'function') updateActiveRouteBanner(); 
-  if (typeof renderFuelCards === 'function' && typeof getFilteredCombinedLogs === 'function') {
-    renderFuelCards(getFilteredCombinedLogs()); 
-  }
-  if (typeof renderExpenseCards === 'function') renderExpenseCards();
-  if (typeof renderCharts === 'function') renderCharts(cf);
-  if (typeof renderCompletedRoutes === 'function') renderCompletedRoutes();
+// ÇAKIŞMAYI ÖNLEYEN GİDER LİSTESİ KONTROLÜ
+if (typeof EXPENSE_TYPES === 'undefined') {
+  window.EXPENSE_TYPES = { 
+    FIXED: ["Kasko", "Trafik Sigortası", "MTV (1. Taksit - Ocak)", "MTV (2. Taksit - Temmuz)", "TÜVTÜRK Muayene"], 
+    VARIABLE: ["Periyodik Bakım", "Parça Değişimi & Onarım", "Lastik Tamir / Değişim", "Oto Yıkama & Temizlik", "Diğer"] 
+  };
 }
 
-// UYGULAMA BAŞLATICI (SAYFA AÇILDIĞINDA ÇALIŞIR)
-window.addEventListener('DOMContentLoaded', () => {
-  if (navigator.storage && navigator.storage.persist) {
-    navigator.storage.persist().then(() => {}).catch(() => {});
-  }
+// ANA EKRAN VE GÖSTERGE HESAPLAMA MOTORU
+function renderAll() {
+  try {
+    if (typeof applyCarProfile === 'function') applyCarProfile();
+    if (typeof populatePaymentSelects === 'function') populatePaymentSelects();
 
-  // Veritabanı başlat ve arayüzü çiz
-  if (typeof initIndexedDB === 'function') {
-    initIndexedDB().then(() => {
-      applyCurrentTheme();
-      applyFontSize(currentFontSizeKey);
-      populateYearSelector();
-      if (typeof renderTiresTab === 'function') renderTiresTab();
-      if (typeof renderLiveFuelCard === 'function') renderLiveFuelCard();
-      if (typeof fetchLiveFuelPrices === 'function') fetchLiveFuelPrices();
-      renderAll();
-    }).catch(() => {
-      applyCurrentTheme();
-      applyFontSize(currentFontSizeKey);
-      populateYearSelector();
-      if (typeof renderTiresTab === 'function') renderTiresTab();
-      if (typeof renderLiveFuelCard === 'function') renderLiveFuelCard();
-      if (typeof fetchLiveFuelPrices === 'function') fetchLiveFuelPrices();
-      renderAll();
+    const allFuels = Array.isArray(window.fuels) ? window.fuels : [];
+    const allExpenses = Array.isArray(window.expenses) ? window.expenses : [];
+    const allOdoLogs = Array.isArray(window.odoLogs) ? window.odoLogs : [];
+
+    const ff = allFuels.filter(f => selectedYear === "all" || (f.date && f.date.startsWith(selectedYear)));
+    const fe = allExpenses.filter(e => selectedYear === "all" || (e.date && e.date.startsWith(selectedYear)));
+    const cf = (typeof calculateFuelMetrics === 'function') ? calculateFuelMetrics(ff) : ff;
+
+    const dTitle = document.getElementById("dashPeriodTitle");
+    const fInd = document.getElementById("fuelPeriodIndicator");
+    const dEntries = document.getElementById("dashTotalEntries");
+
+    if (dTitle) dTitle.innerText = `Dönem: ${selectedYear === "all" ? "Tüm Zamanlar" : selectedYear}`;
+    if (fInd) fInd.innerText = `Gösterilen: ${selectedYear === "all" ? "Tüm Zamanlar" : selectedYear}`;
+    if (dEntries) dEntries.innerText = `${ff.length + fe.length} Kayıt`;
+
+    let tfc = 0, tl = 0; 
+    ff.forEach(f => { tfc += (f.total || 0); tl += (f.liters || 0); });
+
+    const fixedList = (typeof EXPENSE_TYPES !== 'undefined' && EXPENSE_TYPES.FIXED) ? EXPENSE_TYPES.FIXED : [];
+    let fc = 0, vc = tfc; 
+    fe.forEach(e => { 
+      if (fixedList.includes(e.type)) fc += (e.amount || 0); 
+      else vc += (e.amount || 0); 
     });
-  } else {
-    applyCurrentTheme();
-    applyFontSize(currentFontSizeKey);
-    populateYearSelector();
-    renderAll();
+
+    const sFuelExp = document.getElementById("statFuelExpense");
+    const sFuelVol = document.getElementById("statFuelVolume");
+    const sTotOwn = document.getElementById("statTotalOwnership");
+    const fixEl = document.getElementById("statFixedExpenseVal");
+    const sVarExp = document.getElementById("statVariableExpense");
+
+    if (sFuelExp) sFuelExp.innerText = `₺${Math.round(tfc).toLocaleString('tr-TR')}`;
+    if (sFuelVol) sFuelVol.innerText = `Hacim: ${tl.toFixed(1)} L`;
+    if (sTotOwn) sTotOwn.innerText = `₺${Math.round(fc + vc).toLocaleString('tr-TR')}`;
+    if (fixEl) fixEl.innerText = `₺${Math.round(fc).toLocaleString('tr-TR')}`;
+    if (sVarExp) sVarExp.innerText = `₺${Math.round(vc).toLocaleString('tr-TR')}`;
+
+    const sbd = cf.slice().sort((a, b) => new Date(a.date) - new Date(b.date));
+    let currentAvgCons = null;
+    let dK = 0;
+
+    const sTotDist = document.getElementById("statTotalDistance");
+    const sCostPerKm = document.getElementById("statCostPerKm");
+    const sLatestCons = document.getElementById("statLatestCons");
+    const sAvgCons = document.getElementById("statAvgCons");
+
+    if (sbd.length >= 2) {
+      dK = sbd[sbd.length - 1].km - sbd[0].km;
+      if (sTotDist) sTotDist.innerText = `Mesafe: ${dK > 0 ? dK.toLocaleString('tr-TR') : 0} km`;
+      if (sCostPerKm) sCostPerKm.innerText = dK > 0 ? (tfc / dK).toFixed(2) : "--";
+      let vcL = cf.filter(f => f.consumption).map(f => parseFloat(f.consumption));
+      if (vcL.length) {
+        if (sLatestCons) sLatestCons.innerText = vcL[vcL.length - 1].toFixed(2);
+        currentAvgCons = (vcL.reduce((a, b) => a + b, 0) / vcL.length);
+        if (sAvgCons) sAvgCons.innerText = `Dönem Ort: ${currentAvgCons.toFixed(2)} L`;
+      }
+    } else {
+      if (sLatestCons) sLatestCons.innerText = "--"; 
+      if (sAvgCons) sAvgCons.innerText = "Dönem Ort: -- L";
+      if (sCostPerKm) sCostPerKm.innerText = "--"; 
+      if (sTotDist) sTotDist.innerText = "Mesafe: 0 km";
+    }
+
+    // YOL BİLGİSAYARI FARK SAPMASI
+    let diffSum = 0, diffCount = 0;
+    cf.forEach(f => {
+      if (f.consumption && (f.isFull !== undefined ? f.isFull : (f.fillLevel === 'full'))) {
+        const pumpVal = parseFloat(f.consumption);
+        const dashVal = (f.dashL100 !== null && f.dashL100 !== undefined) ? parseFloat(f.dashL100) : NaN;
+        if (!isNaN(pumpVal) && pumpVal > 0 && !isNaN(dashVal) && dashVal > 0) {
+          diffSum += (pumpVal - dashVal);
+          diffCount++;
+        }
+      }
+    });
+
+    const biasValEl = document.getElementById("statDashBiasVal");
+    const biasDescEl = document.getElementById("statDashBiasDesc");
+    if (diffCount > 0) {
+      const avgDiff = diffSum / diffCount;
+      const sign = avgDiff >= 0 ? "+" : "";
+      if (biasValEl) biasValEl.innerText = `${sign}${avgDiff.toFixed(2)} L/100km`;
+      if (biasDescEl) {
+        biasDescEl.innerText = avgDiff >= 0 
+          ? `Ekran ort. %${((avgDiff / (currentAvgCons || 6.5)) * 100).toFixed(1)} iyimser` 
+          : `Ekran ort. %${((Math.abs(avgDiff) / (currentAvgCons || 6.5)) * 100).toFixed(1)} kötümser`;
+      }
+    } else {
+      if (biasValEl) biasValEl.innerText = "--";
+      if (biasDescEl) biasDescEl.innerText = "Yeterli karşılaştırma yok";
+    }
+
+    // YILLIK KULLANIM TEMPOSU
+    const paceValEl = document.getElementById("statUsagePaceVal");
+    const projDescEl = document.getElementById("statUsageProjDesc");
+    const now = new Date();
+    const isCurYear = (selectedYear === now.getFullYear().toString());
+    
+    const allYearEvents = [
+      ...ff, 
+      ...allOdoLogs.filter(o => selectedYear === "all" || (o.date && o.date.startsWith(selectedYear)))
+    ].sort((a,b) => new Date(a.date) - new Date(b.date));
+    
+    if (allYearEvents.length >= 2) {
+      const firstEvent = allYearEvents[0];
+      const lastEvent = allYearEvents[allYearEvents.length - 1];
+      const netYKm = lastEvent.km - firstEvent.km;
+
+      const d1 = new Date(firstEvent.date);
+      const d2 = new Date(lastEvent.date);
+      const daySpan = Math.max(1, Math.round((d2 - d1) / (1000 * 60 * 60 * 24)));
+
+      const dailyAvg = netYKm / daySpan;
+      const monthlyAvg = Math.round(dailyAvg * 30.4);
+
+      if (isCurYear) {
+        const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59);
+        const remainingDays = Math.max(0, Math.ceil((endOfYear - d2) / (1000 * 60 * 60 * 24)));
+        const projectedKm = Math.round(lastEvent.km + (dailyAvg * remainingDays));
+
+        if (paceValEl) paceValEl.innerText = `~${monthlyAvg.toLocaleString('tr-TR')} km/ay`;
+        if (projDescEl) projDescEl.innerText = `${daySpan} güne göre yıl sonu tahmini: ~${projectedKm.toLocaleString('tr-TR')} KM`;
+      } else if (selectedYear !== "all") {
+        if (paceValEl) paceValEl.innerText = `~${monthlyAvg.toLocaleString('tr-TR')} km/ay`;
+        if (projDescEl) projDescEl.innerText = `Dönem içi toplam: ${netYKm.toLocaleString('tr-TR')} KM (${daySpan} gün)`;
+      } else {
+        if (paceValEl) paceValEl.innerText = `${netYKm.toLocaleString('tr-TR')} KM`;
+        if (projDescEl) projDescEl.innerText = `Tüm zamanlar toplam yol (${daySpan} gün)`;
+      }
+    } else {
+      if (paceValEl) paceValEl.innerText = "-- km/ay";
+      if (projDescEl) projDescEl.innerText = "En az 2 sayaç kaydı gerekli";
+    }
+
+    if (typeof updateRangeEstimate === 'function') updateRangeEstimate(currentAvgCons); 
+    if (typeof updateActiveRouteBanner === 'function') updateActiveRouteBanner(); 
+    if (typeof renderFuelCards === 'function' && typeof getFilteredCombinedLogs === 'function') {
+      renderFuelCards(getFilteredCombinedLogs()); 
+    }
+    if (typeof renderExpenseCards === 'function') renderExpenseCards();
+    if (typeof renderCharts === 'function') renderCharts(cf);
+    if (typeof renderCompletedRoutes === 'function') renderCompletedRoutes();
+  } catch (err) {
+    console.error("renderAll hatası:", err);
   }
-});
+}
+
+// UYGULAMA BAŞLATICI
+function startApp() {
+  applyCurrentTheme();
+  applyFontSize(currentFontSizeKey);
+  populateYearSelector();
+  if (typeof renderTiresTab === 'function') renderTiresTab();
+  if (typeof renderLiveFuelCard === 'function') renderLiveFuelCard();
+  if (typeof fetchLiveFuelPrices === 'function') fetchLiveFuelPrices();
+  renderAll();
+
+  if (typeof initIndexedDB === 'function') {
+    initIndexedDB().catch(e => console.warn("DB başlatma uyarısı:", e));
+  }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', startApp);
+} else {
+  startApp();
+}
