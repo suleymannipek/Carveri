@@ -149,10 +149,18 @@ function populateYearSelector() {
   const yearSelect = document.getElementById("globalYearSelect");
   if (!yearSelect) return;
   const yearsSet = new Set();
+  
   if (window.fuels) window.fuels.forEach(f => { if (f.date && f.date.length >= 4) yearsSet.add(f.date.substring(0, 4)); });
   if (window.odoLogs) window.odoLogs.forEach(o => { if (o.date && o.date.length >= 4) yearsSet.add(o.date.substring(0, 4)); });
   if (window.expenses) window.expenses.forEach(e => { if (e.date && e.date.length >= 4) yearsSet.add(e.date.substring(0, 4)); });
+  
   if (yearsSet.size === 0) yearsSet.add(currentSystemYear);
+
+  // Kayıtlı yıl veriler arasında yoksa 'all' (Tüm Zamanlar) yap
+  if (selectedYear !== "all" && !yearsSet.has(selectedYear)) {
+    selectedYear = "all";
+    localStorage.setItem(STORAGE_PREFIX + "selected_year", "all");
+  }
 
   yearSelect.innerHTML = "";
   const optAll = document.createElement("option"); 
