@@ -8,14 +8,18 @@ let hasInitializedAccordion = false;
 function toggleCardExpansion(id) {
   if (expandedCards.has(id)) expandedCards.delete(id);
   else expandedCards.add(id);
-  renderFuelCards(getFilteredCombinedLogs());
+  if (typeof getFilteredCombinedLogs === 'function') {
+    renderFuelCards(getFilteredCombinedLogs());
+  }
 }
 
 function clearFuelSearch() {
   const input = document.getElementById("fuelSearchInput");
   if (input) {
     input.value = "";
-    renderFuelCards(getFilteredCombinedLogs());
+    if (typeof getFilteredCombinedLogs === 'function') {
+      renderFuelCards(getFilteredCombinedLogs());
+    }
     const clearBtn = document.getElementById("fuelClearBtn");
     if (clearBtn) clearBtn.classList.add("hidden");
   }
@@ -27,54 +31,69 @@ function toggleMonthAccordion(monthKey) {
   } else {
     openMonthAccordions.add(monthKey);
   }
-  renderFuelCards(getFilteredCombinedLogs());
+  if (typeof getFilteredCombinedLogs === 'function') {
+    renderFuelCards(getFilteredCombinedLogs());
+  }
 }
 
 function showMoreMonths() {
   maxVisibleMonths += 3;
-  renderFuelCards(getFilteredCombinedLogs());
+  if (typeof getFilteredCombinedLogs === 'function') {
+    renderFuelCards(getFilteredCombinedLogs());
+  }
 }
 
 function formatMonthTitle(monthKey) {
-  const [year, month] = monthKey.split("-");
+  const parts = monthKey.split("-");
+  const year = parts[0];
+  const month = parts[1];
   const monthNames = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
   const mIdx = parseInt(month, 10) - 1;
-  return `${monthNames[mIdx] || month} ${year}`;
+  return (monthNames[mIdx] || month) + " " + year;
 }
 
-// 1, 2, 3 ve 4. MADDELERİN UYGULANDIĞI ANA LİSTELEME FONKSİYONU
+// ANA KART ÇİZME FONKSİYONU
 function renderFuelCards(combinedList) {
   const container = document.getElementById("fuelCardsList");
   if (!container) return;
   container.innerHTML = "";
 
-  const query = (document.getElementById("fuelSearchInput")?.value || "").toLowerCase();
+  if (!Array.isArray(combinedList)) combinedList = [];
+
+  const searchInput = document.getElementById("fuelSearchInput");
+  const query = (searchInput ? searchInput.value : "").toLowerCase();
   const clearBtn = document.getElementById("fuelClearBtn");
   if (clearBtn) clearBtn.classList.toggle("hidden", !query);
 
   const filtered = combinedList.filter(item => {
+    if (!item) return false;
     if (item.isOdoOnly) {
       return (item.note && item.note.toLowerCase().includes(query)) ||
              (item.date && item.date.includes(query)) ||
-             item.km.toString().includes(query);
+             (item.km && item.km.toString().includes(query));
     } else {
       return (item.station && item.station.toLowerCase().includes(query)) ||
              (item.branch && item.branch.toLowerCase().includes(query)) ||
              (item.paymentMethod && item.paymentMethod.toLowerCase().includes(query)) ||
              (item.date && item.date.includes(query)) ||
-             item.km.toString().includes(query);
+             (item.km && item.km.toString().includes(query));
     }
   });
 
   if (filtered.length === 0) {
-    container.innerHTML = `<div class="p-6 text-center custom-muted text-xs font-semibold">Kayıtlı veri bulunmuyor.</div>`;
+    container.innerHTML = '<div class="p-6 text-center custom-muted text-xs font-semibold">Kayıtlı veri bulunmuyor.</div>';
     return;
   }
 
+  const allFuels = Array.isArray(window.fuels) ? window.fuels : [];
+  const allOdos = Array.isArray(window.odoLogs) ? window.odoLogs : [];
+
   // +KM Fark Haritası
-  const allChron = [...window.fuels.map(f => ({ ...f, isOdoOnly: false })), ...window.odoLogs.map(o => ({ ...o, isOdoOnly: true }))]
-    .sort((a, b) => new Date(a.date) - new Date(b.date) || a.km - b.km);
-  
+  const allChron = [
+    ...allFuels.map(f => ({ ...f, isOdoOnly: false })),
+    ...allOdos.map(o => ({ ...o, isOdoOnly: true }))
+  ].sort((a, b) => new Date(a.date) - new Date(b.date) || a.km - b.km);
+
   let stepDiffMap = {};
   for (let i = 1; i < allChron.length; i++) {
     let diff = allChron[i].km - allChron[i - 1].km;
@@ -82,7 +101,7 @@ function renderFuelCards(combinedList) {
   }
 
   // Yakıtlar Arası Mesafe ve Birim Maliyet
-  const sortedFuelsOnly = window.fuels.slice().sort((a, b) => new Date(a.date) - new Date(b.date) || a.km - b.km);
+  const sortedFuelsOnly = allFuels.slice().sort((a, b) => new Date(a.date) - new Date(b.date) || a.km - b.km);
   let fuelDistMap = {};
   for (let i = 0; i < sortedFuelsOnly.length; i++) {
     let curr = sortedFuelsOnly[i];
@@ -96,12 +115,12 @@ function renderFuelCards(combinedList) {
 
   // KM Girişleri Arası Tüketim & Tahmini Harcama
   let odoCostMap = {};
-  const sortedOdosOnly = window.odoLogs.slice().sort((a, b) => new Date(a.date) - new Date(b.date) || a.km - b.km);
+  const sortedOdosOnly = allOdos.slice().sort((a, b) => new Date(a.date) - new Date(b.date) || a.km - b.km);
   for (let i = 1; i < sortedOdosOnly.length; i++) {
     const prevOdo = sortedOdosOnly[i - 1];
     const currOdo = sortedOdosOnly[i];
     const dist = currOdo.km - prevOdo.km;
-    
+
     if (dist > 0) {
       const l100 = parseFloat(currOdo.dashboardL100) || parseFloat(prevOdo.dashboardL100) || 0;
       let burnedLiters = 0;
@@ -113,9 +132,9 @@ function renderFuelCards(combinedList) {
         const lastF = pastFuels[pastFuels.length - 1];
         if (lastF.liters > 0 && lastF.total > 0) unitPrice = lastF.total / lastF.liters;
       }
-      
+
       if (unitPrice === 0 && window.liveFuelData && window.liveFuelData.fiyatlar) {
-        const fType = window.carProfile.fuelType || "benzin";
+        const fType = (window.carProfile && window.carProfile.fuelType) || "benzin";
         const rawPrice = window.liveFuelData.fiyatlar[fType] || "0";
         unitPrice = parseFloat(rawPrice.replace(",", ".")) || 0;
       }
@@ -166,6 +185,9 @@ function renderFuelCards(combinedList) {
     const section = document.createElement("div");
     section.className = "space-y-2";
 
+    const expText = grp.totalFuelExpense > 0 ? '<span class="text-[10px] font-black text-emerald-500">₺' + Math.round(grp.totalFuelExpense).toLocaleString('tr-TR') + '</span>' : '';
+    const arrow = isOpen ? '▲' : '▼';
+
     section.innerHTML = `
       <div onclick="toggleMonthAccordion('${mKey}')" class="p-2.5 rounded-xl custom-card border cursor-pointer flex justify-between items-center shadow-sm hover:border-cyan-500/40 transition-colors">
         <div class="flex items-center gap-2">
@@ -173,8 +195,8 @@ function renderFuelCards(combinedList) {
           <span class="text-[9px] theme-badge-cyan px-2 py-0.5 rounded-full font-bold">${grp.count} Kayıt</span>
         </div>
         <div class="flex items-center gap-2">
-          ${grp.totalFuelExpense > 0 ? `<span class="text-[10px] font-black text-emerald-500">₺${Math.round(grp.totalFuelExpense).toLocaleString('tr-TR')}</span>` : ''}
-          <span class="text-xs custom-muted font-bold">${isOpen ? '▲' : '▼'}</span>
+          ${expText}
+          <span class="text-xs custom-muted font-bold">${arrow}</span>
         </div>
       </div>
     `;
@@ -186,24 +208,21 @@ function renderFuelCards(combinedList) {
       grp.items.forEach(item => {
         const card = document.createElement("div");
         card.className = "custom-card p-3.5 shadow text-xs transition-all";
-        const dateFormatted = formatDateTimeLabel(item.date);
+        const dateFormatted = typeof formatDateTimeLabel === 'function' ? formatDateTimeLabel(item.date) : item.date;
         const stepKm = stepDiffMap[item.id];
         const kmBadge = stepKm ? `<span class="theme-badge-green font-black px-1.5 py-0.5 rounded text-[9px]">+${stepKm.toLocaleString('tr-TR')} km</span>` : "";
 
-        // ==========================================
-        // 2 & 3. MADDE: SADELEŞTİRİLMİŞ KM KARTI ŞABLONU
-        // ==========================================
+        // KM KARTI
         if (item.isOdoOnly) {
-          let fuelTag = (item.fuelPercent !== null && item.fuelPercent !== undefined) ? `<span class="theme-badge-green font-black px-1.5 py-0.5 rounded text-[9px]">⛽ %${item.fuelPercent}</span>` : "";
-          let dashTag = item.dashboardL100 ? `<span class="theme-badge-amber font-bold px-1.5 py-0.5 rounded text-[9px]">Ort: ${item.dashboardL100} L</span>` : "";
-          
+          const fuelTag = (item.fuelPercent !== null && item.fuelPercent !== undefined) ? `<span class="theme-badge-cyan font-black px-1.5 py-0.5 rounded text-[9px]">⛽ %${item.fuelPercent}</span>` : "";
+          const dashTag = item.dashboardL100 ? `<span class="theme-badge-amber font-bold px-1.5 py-0.5 rounded text-[9px]">Ort: ${item.dashboardL100} L</span>` : "";
+
           const cMeta = odoCostMap[item.id];
           let tripCostTag = "";
           if (cMeta && cMeta.cost) {
-            tripCostTag = `<span class="theme-badge-cyan font-black px-1.5 py-0.5 rounded text-[9px]" title="Tahmini Harcanan: ${cMeta.liters || '--'} L (~${cMeta.costPerKm || '--'} ₺/km)">~₺${cMeta.cost.toLocaleString('tr-TR')} (${cMeta.liters} L)</span>`;
+            tripCostTag = `<span class="theme-badge-blue font-black px-1.5 py-0.5 rounded text-[9px]">~₺${cMeta.cost.toLocaleString('tr-TR')} (${cMeta.liters} L)</span>`;
           }
 
-          // "• Manuel KM" kaldırıldı, sadece kullanıcı özel bir not girdiyse basılır
           const customNote = (item.note && item.note !== "Manuel KM") ? `<div class="text-[10px] custom-muted mt-1 font-medium">${item.note}</div>` : "";
 
           card.innerHTML = `
@@ -226,19 +245,16 @@ function renderFuelCards(combinedList) {
               </div>
             </div>
           `;
-          
         } else {
-          // ==========================================
-          // 4. MADDE: MÜKERRERLİKLERİ TEMİZLENMİŞ YAKIT KARTI
-          // ==========================================
+          // YAKIT KARTI
           const isExp = expandedCards.has(item.id);
           const meta = fuelDistMap[item.id];
-          const unitPrice = (item.total / item.liters).toFixed(2);
+          const unitPrice = item.liters > 0 ? (item.total / item.liters).toFixed(2) : "0.00";
           const isFull = item.isFull !== undefined ? item.isFull : (item.fillLevel === 'full');
-          let fillBadge = isFull ? `<span class="theme-badge-green font-black px-2 py-0.5 rounded text-[10px]">Tam Depo</span>` : `<span class="theme-badge-amber font-black px-2 py-0.5 rounded text-[10px]">Ara Dolum</span>`;
-          let compBadge = (item.consumption && isFull) ? `<span class="theme-badge-cyan font-black px-2 py-0.5 rounded-md text-[10px] ml-1">Gerçek: ${item.consumption} L/100km</span>` : "";
-          let diffDisplay = (item.consumption && item.dashL100 && isFull) ? `<div class="text-[9px] text-amber-600 dark:text-amber-400 font-bold mt-1">📊 Pompa: ${item.consumption} L • Gösterge: ${item.dashL100} L (Fark: ${(item.consumption - item.dashL100).toFixed(2) > 0 ? '+' : ''}${(item.consumption - item.dashL100).toFixed(2)} L)</div>` : "";
-          
+          const fillBadge = isFull ? `<span class="theme-badge-green font-black px-2 py-0.5 rounded text-[10px]">Tam Depo</span>` : `<span class="theme-badge-amber font-black px-2 py-0.5 rounded text-[10px]">Ara Dolum</span>`;
+          const compBadge = (item.consumption && isFull) ? `<span class="theme-badge-cyan font-black px-2 py-0.5 rounded-md text-[10px] ml-1">Gerçek: ${item.consumption} L/100km</span>` : "";
+          const diffDisplay = (item.consumption && item.dashL100 && isFull) ? `<div class="text-[9px] text-amber-600 dark:text-amber-400 font-bold mt-1">📊 Pompa: ${item.consumption} L • Gösterge: ${item.dashL100} L</div>` : "";
+
           card.innerHTML = `
             <div onclick="toggleCardExpansion('${item.id}')" class="cursor-pointer">
               <div class="flex justify-between items-center">
@@ -298,16 +314,4 @@ function renderFuelCards(combinedList) {
 
     container.appendChild(section);
   });
-
-  if (!query && sortedMonthKeys.length > maxVisibleMonths) {
-    const remainingMonths = sortedMonthKeys.length - maxVisibleMonths;
-    const btnBox = document.createElement("div");
-    btnBox.className = "pt-2 text-center";
-    btnBox.innerHTML = `
-      <button type="button" onclick="showMoreMonths()" class="w-full py-2.5 rounded-xl custom-card border text-[11px] font-black text-cyan-500 hover:border-cyan-500 transition-all shadow-sm">
-        📅 Daha Eski Ayları Göster (+${Math.min(3, remainingMonths)} Ay)
-      </button>
-    `;
-    container.appendChild(btnBox);
-  }
 }
