@@ -148,35 +148,44 @@ let selectedYear = localStorage.getItem(STORAGE_PREFIX + "selected_year") || cur
 function populateYearSelector() {
   const yearSelect = document.getElementById("globalYearSelect");
   if (!yearSelect) return;
+
   const yearsSet = new Set();
   
-  if (window.fuels) window.fuels.forEach(f => { if (f.date && f.date.length >= 4) yearsSet.add(f.date.substring(0, 4)); });
-  if (window.odoLogs) window.odoLogs.forEach(o => { if (o.date && o.date.length >= 4) yearsSet.add(o.date.substring(0, 4)); });
-  if (window.expenses) window.expenses.forEach(e => { if (e.date && e.date.length >= 4) yearsSet.add(e.date.substring(0, 4)); });
-  
+  const allFuels = Array.isArray(window.fuels) ? window.fuels : [];
+  const allOdos = Array.isArray(window.odoLogs) ? window.odoLogs : [];
+  const allExps = Array.isArray(window.expenses) ? window.expenses : [];
+
+  allFuels.forEach(f => { if (f && f.date && f.date.length >= 4) yearsSet.add(f.date.substring(0, 4)); });
+  allOdos.forEach(o => { if (o && o.date && o.date.length >= 4) yearsSet.add(o.date.substring(0, 4)); });
+  allExps.forEach(e => { if (e && e.date && e.date.length >= 4) yearsSet.add(e.date.substring(0, 4)); });
+
   if (yearsSet.size === 0) yearsSet.add(currentSystemYear);
 
-  // Kayıtlı yıl veriler arasında yoksa 'all' (Tüm Zamanlar) yap
+  // Eğer mevcut selectedYear kayıtlı yılların içinde yoksa 'all' yap
   if (selectedYear !== "all" && !yearsSet.has(selectedYear)) {
     selectedYear = "all";
     localStorage.setItem(STORAGE_PREFIX + "selected_year", "all");
   }
 
   yearSelect.innerHTML = "";
-  const optAll = document.createElement("option"); 
-  optAll.value = "all"; 
-  optAll.innerText = "Tüm Zamanlar";
+
+  // 'Tüm Zamanlar'
+  const optAll = document.createElement("option");
+  optAll.value = "all";
+  optAll.textContent = "Tüm Zamanlar";
   if (selectedYear === "all") optAll.selected = true;
   yearSelect.appendChild(optAll);
 
+  // Yılları ekle
   Array.from(yearsSet).sort().reverse().forEach(y => {
-    const opt = document.createElement("option"); 
-    opt.value = y; 
-    opt.innerText = y;
-    if (y === selectedYear) opt.selected = true;
+    const opt = document.createElement("option");
+    opt.value = y;
+    opt.textContent = y;
+    if (String(y) === String(selectedYear)) opt.selected = true;
     yearSelect.appendChild(opt);
   });
 }
+
 function syncSelectedYearWithDate(targetDateStr) {
   if (!targetDateStr || targetDateStr.length < 4) return;
   const entryYear = targetDateStr.substring(0, 4);
