@@ -199,6 +199,16 @@ input[type="datetime-local"] {
   }
 }
 
+/* Başlıktaki Yıl Seçici Alanının Boyutunu Koruma */
+#globalYearSelect {
+  min-height: 32px !important;
+  font-size: 11px !important;
+  padding: 0.25rem 0.6rem !important;
+  min-width: 90px !important;
+  cursor: pointer !important;
+  display: inline-block !important;
+}
+
 /* --- ROZETLER (BADGES) --- */
 .theme-badge-green { background-color: var(--badge-green-bg); color: var(--badge-green-text); border: 1px solid var(--badge-green-border); }
 .theme-badge-blue { background-color: var(--badge-blue-bg); color: var(--badge-blue-text); border: 1px solid var(--badge-blue-border); }
