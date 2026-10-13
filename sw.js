@@ -1,4 +1,4 @@
-const CACHE_NAME = 'carveri-v28';
+const CACHE_NAME = 'carveri-v29';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
