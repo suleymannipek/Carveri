@@ -236,6 +236,7 @@ function saveManualOdo(e) {
     }
 
     persistAllData();
+    syncSelectedYearWithDate(dateVal);
     closeModal("odoModal");
     populateYearSelector();
     renderAll();
