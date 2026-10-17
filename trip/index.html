@@ -24,19 +24,17 @@
       --sab: env(safe-area-inset-bottom, 0px);
     }
     
-    /* TEMA 1: Extreme Bakır (Varsayılan) */
+    /* TEMALAR */
     body.theme-copper {
       --color-accent: #d97706; 
       --color-glow: rgba(217, 119, 6, 0.4);
       --bg-accent: rgba(217, 119, 6, 0.1);
     }
-    /* TEMA 2: Neon Cyan */
     body.theme-cyan {
       --color-accent: #06b6d4;
       --color-glow: rgba(6, 182, 212, 0.4);
       --bg-accent: rgba(6, 182, 212, 0.1);
     }
-    /* TEMA 3: Zümrüt Yeşil */
     body.theme-emerald {
       --color-accent: #10b981;
       --color-glow: rgba(16, 185, 129, 0.4);
@@ -47,68 +45,86 @@
       user-select: none;
       -webkit-user-select: none;
       touch-action: manipulation;
-      background-color: #000000;
+      background-color: #000000; /* Saf OLED Siyahı */
     }
 
+    /* Cam Efektli Kartlar (Glassmorphism) */
     .glass-card {
       background: rgba(255, 255, 255, 0.03);
       border: 1px solid rgba(255, 255, 255, 0.08);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
     }
 
     .accent-text { color: var(--color-accent); }
     .accent-border { border-color: var(--color-accent); }
     .accent-bg { background-color: var(--color-accent); }
-    
-    .glow-text {
-      text-shadow: 0 0 25px var(--color-glow);
+    .glow-text { text-shadow: 0 0 25px var(--color-glow); }
+
+    /* --- ÖZEL START BUTONU TASARIMI --- */
+    .btn-engine-start {
+      background: linear-gradient(135deg, #065f46 0%, #10b981 100%);
+      border: 2px solid #34d399;
+      box-shadow: 0 0 25px rgba(16, 185, 129, 0.3), inset 0 2px 5px rgba(255,255,255,0.4);
+      text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+      transition: all 0.1s ease-out;
+    }
+    .btn-engine-start:active {
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.5), inset 0 4px 10px rgba(0,0,0,0.7);
+      transform: translateY(3px) scale(0.97);
     }
 
-    /* Responsive Layout (Telefon vs Carlinkit) */
+    /* --- RESPONSIVE YAPI (TELEFON & CARLINKIT) --- */
+    .live-speed-val {
+      font-size: clamp(90px, 25vw, 130px);
+      line-height: 0.9;
+    }
     .content-wrapper {
       display: flex;
       flex-direction: column;
       flex: 1;
-      min-height: 0;
-      padding-top: 1rem;
+      min-height: 0; /* Flex hatasını engeller */
+      margin-top: 0.5rem;
     }
     
-    .live-speed-val {
-      font-size: 130px;
-      line-height: 0.9;
+    .controls-panel {
+      overflow-y: auto; /* Basık ekranlarda kaydırma açar */
+      scrollbar-width: none; /* Firefox için gizler */
     }
+    .controls-panel::-webkit-scrollbar { display: none; } /* Chrome için gizler */
 
-    @media (orientation: landscape) and (min-width: 600px) {
+    /* Cihaz Yan Döndüğünde (Carlinkit & Tablet) */
+    @media (orientation: landscape) and (min-width: 500px) {
+      .live-speed-val { 
+        font-size: clamp(80px, 35vh, 160px); /* Yüksekliğe göre akıllı boyut */
+      }
       .content-wrapper {
         flex-direction: row;
-        align-items: center;
-        gap: 2rem;
+        align-items: stretch;
+        gap: 1.5rem;
       }
       .main-speed {
         flex: 1;
         display: flex;
         flex-direction: column;
         justify-content: center;
-        height: 100%;
         border-right: 1px solid rgba(255,255,255,0.08);
       }
       .controls-panel {
         flex: 1;
-        max-width: 450px;
+        max-width: 400px;
         display: flex;
         flex-direction: column;
         justify-content: center;
+        padding-right: 0.5rem;
       }
-      .live-speed-val { font-size: 160px; }
-      header { padding-bottom: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.08); }
     }
   </style>
 </head>
 <body class="theme-copper text-white h-[100dvh] w-full overflow-hidden font-sans pt-[calc(0.5rem+var(--sat))] pb-[calc(0.5rem+var(--sab))] px-4 flex flex-col">
 
-  <!-- Üst Bilgi Barı -->
-  <header class="shrink-0 flex justify-between items-center py-2">
+  <!-- 1. ÜST BİLGİ BARI -->
+  <header class="shrink-0 flex justify-between items-center py-2 border-b border-white/5 pb-3">
     <div class="flex items-center gap-3">
       <a href="../index.html" class="w-10 h-10 rounded-full glass-card flex items-center justify-center text-zinc-400 hover:text-white transition-colors">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
@@ -119,20 +135,20 @@
       </div>
     </div>
     <div class="flex items-center gap-3">
-      <button onclick="cycleTheme()" class="text-lg opacity-80 hover:opacity-100 transition-opacity" title="Temayı Değiştir">🎨</button>
+      <button onclick="cycleTheme()" class="text-xl bg-white/5 w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/10 transition-colors" title="Temayı Değiştir">🎨</button>
       <div class="flex flex-col items-end">
         <span id="gpsStatusBadge" class="text-[9px] font-bold px-2 py-1 rounded-full glass-card accent-text">GPS Aranıyor</span>
-        <label class="text-[9px] text-zinc-500 mt-1 cursor-pointer hover:text-zinc-300">📦 Yükle
+        <label class="text-[9px] text-zinc-500 mt-1 cursor-pointer hover:text-zinc-300 transition-colors">📦 Yükle
           <input type="file" accept=".zip" onchange="loadZipBackup(event)" class="hidden" />
         </label>
       </div>
     </div>
   </header>
 
-  <!-- Ana İçerik Alanı (Dikeyde alt alta, Yatayda yan yana) -->
+  <!-- 2. ANA İÇERİK ALANI (Akıllı Esnek Yapı) -->
   <div class="content-wrapper">
     
-    <!-- Hız Göstergesi -->
+    <!-- Hız Göstergesi Bölümü -->
     <main class="main-speed flex-1 flex flex-col items-center justify-center relative">
       <span class="text-[10px] font-black accent-text tracking-[0.3em] uppercase mb-2">ANLIK HIZ</span>
       <div class="flex items-baseline gap-2">
@@ -142,13 +158,13 @@
       <p id="accuracyText" class="text-[11px] text-zinc-600 mt-3 font-medium">±0m Doğruluk</p>
     </main>
 
-    <!-- Veri Kartları ve Kontroller -->
-    <section class="controls-panel shrink-0 space-y-3 pb-2 w-full mx-auto">
+    <!-- Veri Kartları ve Butonlar Bölümü (Taşma durumunda kaydırılabilir) -->
+    <section class="controls-panel shrink-0 space-y-3.5 w-full mx-auto pb-4">
       
       <!-- Rota Adı ve Harita -->
-      <div class="flex gap-2">
-        <input type="text" id="routeNameInput" placeholder="Rota İsmi (Örn: İşe Gidiş)" class="flex-1 glass-card rounded-2xl px-4 py-3.5 text-xs text-white placeholder-zinc-600 focus:accent-border outline-none transition-colors" />
-        <button onclick="launchExternalNav()" class="glass-card hover:bg-white/10 text-zinc-300 px-4 rounded-2xl text-[11px] font-bold flex items-center justify-center transition-colors">🗺️ Harita</button>
+      <div class="flex gap-2 pt-2">
+        <input type="text" id="routeNameInput" placeholder="Nereye Gidiyoruz? (Rota Adı)" class="flex-1 glass-card rounded-2xl px-4 py-3.5 text-xs text-white placeholder-zinc-600 focus:accent-border outline-none transition-colors" />
+        <button onclick="launchExternalNav()" class="glass-card hover:bg-white/10 text-zinc-300 px-4 rounded-2xl text-[11px] font-bold flex items-center justify-center transition-colors shadow-lg">🗺️ Harita</button>
       </div>
 
       <!-- Tüketim ve Mesafe Kartları -->
@@ -157,7 +173,7 @@
           <div class="absolute top-0 left-0 w-full h-1 accent-bg opacity-50"></div>
           <span class="text-[9px] uppercase text-zinc-500 font-bold tracking-wider">MESAFE / SÜRE</span>
           <div class="flex items-baseline gap-1 mt-1.5">
-            <span id="tripDistanceText" class="text-3xl font-black tabular-nums">0.0</span>
+            <span id="tripDistanceText" class="text-3xl font-black tabular-nums text-white">0.0</span>
             <span class="text-[10px] text-zinc-400">KM</span>
           </div>
           <p id="tripTimeText" class="text-[11px] accent-text mt-1 font-mono font-bold">00:00</p>
@@ -173,17 +189,18 @@
           <p id="tripLitersText" class="text-[10px] text-zinc-500 mt-1">0.00 L tüketildi</p>
         </div>
       </div>
-      <div id="autoParamsBadge" class="text-[9px] text-zinc-600 text-center font-medium">Tüketim Yükleniyor...</div>
+      <div id="autoParamsBadge" class="text-[9px] text-zinc-600 text-center font-medium bg-white/5 rounded-lg py-1.5 mx-8">Tüketim Yükleniyor...</div>
 
-      <!-- Başlat / Bitir Butonları -->
-      <div id="btnGroupStart" class="pt-1">
-        <button onclick="startTripTracking()" class="w-full py-4.5 bg-white text-black font-black text-xs uppercase tracking-widest rounded-2xl transition-transform active:scale-95 shadow-[0_0_20px_rgba(255,255,255,0.2)]">
-          🚀 SÜRÜŞÜ BAŞLAT
+      <!-- KİBAR "BAŞLAT" BUTONU -->
+      <div id="btnGroupStart" class="pt-2 pb-2">
+        <button onclick="startTripTracking()" class="w-full py-3.5 rounded-2xl btn-engine-start text-white flex items-center justify-center gap-2">
+          <span class="text-sm font-black tracking-widest uppercase text-white drop-shadow-md">🚀 Sürüşü Başlat</span>
         </button>
       </div>
       
-      <div id="btnGroupStop" class="grid grid-cols-3 gap-2 hidden pt-1">
-        <button onclick="cancelTripTracking()" class="col-span-1 py-4 glass-card text-rose-500 font-bold text-xs rounded-2xl active:scale-95 transition-all">İptal</button>
+      <!-- İPTAL / BİTİR BUTONLARI -->
+      <div id="btnGroupStop" class="grid grid-cols-3 gap-2 hidden pt-2 pb-2">
+        <button onclick="cancelTripTracking()" class="col-span-1 py-4 glass-card text-rose-400 font-bold text-xs rounded-2xl active:scale-95 transition-all">İptal</button>
         <button onclick="openFinishModal()" class="col-span-2 py-4 accent-bg text-black font-black text-xs uppercase tracking-widest rounded-2xl active:scale-95 transition-all glow-text" style="text-shadow: none;">
           ⏹️ BİTİR & KAYDET
         </button>
@@ -191,42 +208,42 @@
     </section>
   </div>
 
-  <!-- Sürüş Bitiş Ekranı (Modal) -->
+  <!-- 3. SÜRÜŞ BİTİŞ EKRANI (MODAL) -->
   <div id="finishModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center hidden transition-opacity p-4">
     <div class="glass-card w-full max-w-md rounded-3xl p-6 shadow-[0_10px_40px_rgba(0,0,0,0.8)] border-t border-white/20">
       <h3 class="accent-text font-black text-lg mb-5 uppercase tracking-wider text-center">🏁 SÜRÜŞ ÖZETİ</h3>
       <div class="space-y-4">
         <div>
           <label class="text-[10px] text-zinc-400 uppercase font-bold tracking-widest">Rota Adı</label>
-          <input type="text" id="modalRouteName" class="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3.5 text-xs text-white mt-1.5 focus:accent-border outline-none transition-colors" />
+          <input type="text" id="modalRouteName" class="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3.5 text-sm text-white mt-1.5 focus:accent-border outline-none transition-colors" />
         </div>
         <div class="flex gap-3">
           <div class="flex-1">
             <label class="text-[10px] text-zinc-400 uppercase font-bold tracking-widest">Ölçülen (KM)</label>
-            <input type="number" step="0.1" id="modalDistance" class="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3.5 text-sm text-white font-black mt-1.5 outline-none focus:accent-border" />
+            <input type="number" step="0.1" id="modalDistance" class="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3.5 text-lg text-white font-black mt-1.5 outline-none focus:accent-border text-center" />
           </div>
           <div class="flex-1">
             <label class="text-[10px] text-zinc-400 uppercase font-bold tracking-widest">Tüketim (L)</label>
-            <input type="number" step="0.1" id="modalConsumption" class="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3.5 text-sm text-white font-black mt-1.5 outline-none focus:accent-border" />
+            <input type="number" step="0.1" id="modalConsumption" class="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3.5 text-lg text-white font-black mt-1.5 outline-none focus:accent-border text-center" />
           </div>
         </div>
       </div>
       <div class="flex gap-3 mt-8">
-        <button onclick="closeFinishModal()" class="flex-1 py-3.5 glass-card text-zinc-300 font-bold rounded-xl text-xs uppercase tracking-wider">Vazgeç</button>
-        <button onclick="finalizeRouteSave()" class="flex-1 py-3.5 accent-bg text-black font-black rounded-xl text-xs uppercase tracking-wider">Hesapla & Kaydet</button>
+        <button onclick="closeFinishModal()" class="flex-1 py-4 glass-card text-zinc-300 font-bold rounded-xl text-xs uppercase tracking-wider">Vazgeç</button>
+        <button onclick="finalizeRouteSave()" class="flex-[1.5] py-4 accent-bg text-black font-black rounded-xl text-xs uppercase tracking-wider shadow-[0_0_15px_var(--color-glow)]">Onayla & Kaydet</button>
       </div>
     </div>
   </div>
 
   <script>
-    // --- TEMA MOTORU ---
+    // --- 1. TEMA MOTORU ---
     const themes = ['theme-copper', 'theme-cyan', 'theme-emerald'];
     let currentThemeIdx = 0;
 
     function initTheme() {
       const savedTheme = localStorage.getItem('hud_theme') || 'theme-copper';
       currentThemeIdx = themes.indexOf(savedTheme) !== -1 ? themes.indexOf(savedTheme) : 0;
-      document.body.className = `${savedTheme} text-white h-[100dvh] w-full overflow-hidden font-sans pt-[calc(0.5rem+var(--sat))] pb-[calc(0.5rem+var(--sab))] px-4 flex flex-col`;
+      document.body.classList.add(savedTheme);
     }
 
     function cycleTheme() {
@@ -239,7 +256,7 @@
       localStorage.setItem('hud_theme', newTheme);
     }
 
-    // --- MEVCUT JS MANTIKLARI ---
+    // --- 2. CARVERI ANA JS MANTIKLARI ---
     const STORAGE_PREFIX = "ototakip_promax_";
     let fullBackupData = null;
     let avgConsumption = 6.5; 
@@ -313,7 +330,7 @@
 
     function launchExternalNav() {
       const target = document.getElementById("routeNameInput").value.trim();
-      if (!target) return alert("Lütfen gitmek istediğiniz konumu (Rota Adı) yazın.");
+      if (!target) return alert("Lütfen Harita'da aratmak için Rota Adı kısmına konumu yazın.");
       const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(target)}`;
       window.open(mapsUrl, "_blank");
     }
@@ -405,6 +422,7 @@
       document.getElementById("gpsStatusBadge").innerText = "GPS Hazır 🟢";
     }
 
+    // --- 3. MODAL (BİTİRİŞ) YÖNETİMİ ---
     function openFinishModal() {
       stopGpsWatch(); 
       let defaultName = document.getElementById("routeNameInput").value.trim() || "Uzun Yol Rotası";
