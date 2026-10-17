@@ -251,21 +251,70 @@
       return R * c;
     }
 
-    // 6. Rotayı Başlat
-    function startTripTracking() {
-      if (!navigator.geolocation) return alert("Cihazınızda GPS desteği bulunamadı.");
+    // 6. Pasif GPS Başlatıcı (Uygulama açılır açılmaz hızı canlı gösterir)
+    function initPassiveGps() {
+      if (!navigator.geolocation) {
+        document.getElementById("gpsStatusBadge").innerText = "GPS Yok ❌";
+        return;
+      }
 
+      document.getElementById("gpsStatusBadge").innerText = "Uydu Aranıyor 📡";
+      document.getElementById("gpsStatusBadge").className = "absolute top-3 right-3 text-[9px] font-bold px-2 py-0.5 rounded-full bg-amber-950 text-amber-400 border border-amber-800";
+
+      watchId = navigator.geolocation.watchPosition(
+        (pos) => {
+          const { latitude, longitude, speed, accuracy } = pos.coords;
+
+          document.getElementById("accuracyText").innerText = `Doğruluk: ±${Math.round(accuracy)}m`;
+
+          // Uydudan sinyal geldiğinde rozeti yeşil yap
+          if (!isTracking) {
+            document.getElementById("gpsStatusBadge").innerText = "GPS Hazır 🟢";
+            document.getElementById("gpsStatusBadge").className = "absolute top-3 right-3 text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800";
+          }
+
+          // ANLIK HIZ: Açılır açılmaz her zaman gösterilir (km/s)
+          const kmh = speed !== null && speed > 0 ? Math.round(speed * 3.6) : 0;
+          document.getElementById("liveSpeedText").innerText = kmh;
+
+          // Eğer "Rotayı Başlat" butonuna basıldıysa KM ve TL saymaya başla
+          if (isTracking) {
+            if (lastCoords) {
+              const stepDist = getDistanceBetweenPoints(lastCoords.lat, lastCoords.lon, latitude, longitude);
+              if (stepDist > 0.005 && stepDist < 2.0 && accuracy < 40) {
+                totalDistanceKm += stepDist;
+              }
+            }
+            lastCoords = { lat: latitude, lon: longitude };
+            document.getElementById("tripDistanceText").innerText = totalDistanceKm.toFixed(1);
+
+            // Canlı Maliyet Hesabı
+            const burnedLiters = (totalDistanceKm * avgConsumption) / 100;
+            const cost = Math.round(burnedLiters * unitFuelPrice);
+            document.getElementById("tripLitersText").innerText = `${burnedLiters.toFixed(2)} L tüketildi`;
+            document.getElementById("tripCostText").innerText = cost.toLocaleString('tr-TR');
+          }
+        },
+        (err) => {
+          document.getElementById("gpsStatusBadge").innerText = "Sinyal Yok ⚠️";
+        },
+        { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 }
+      );
+    }
+
+    // "Rotayı Başlat" Butonuna Basıldığında Sayaçları Devreye Sokar
+    function startTripTracking() {
       totalDistanceKm = 0;
       lastCoords = null;
       startTime = Date.now();
       isTracking = true;
 
-      requestWakeLock();
+      requestWakeLock(); // Ekranın açık kalmasını sağla
 
       document.getElementById("btnGroupStart").classList.add("hidden");
       document.getElementById("btnGroupStop").classList.remove("hidden");
-      document.getElementById("gpsStatusBadge").innerText = "GPS Aktif 🟢";
-      document.getElementById("gpsStatusBadge").className = "absolute top-3 right-3 text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800";
+      document.getElementById("gpsStatusBadge").innerText = "Kayıt Yapılıyor 🔴";
+      document.getElementById("gpsStatusBadge").className = "absolute top-3 right-3 text-[9px] font-bold px-2 py-0.5 rounded-full bg-rose-950 text-rose-400 border border-rose-800 animate-pulse";
 
       timerInterval = setInterval(() => {
         const sec = Math.floor((Date.now() - startTime) / 1000);
@@ -273,38 +322,6 @@
         const s = String(sec % 60).padStart(2, '0');
         document.getElementById("tripTimeText").innerText = `Süre: ${m}:${s}`;
       }, 1000);
-
-      watchId = navigator.geolocation.watchPosition(
-        (pos) => {
-          const { latitude, longitude, speed, accuracy } = pos.coords;
-          document.getElementById("accuracyText").innerText = `Doğruluk: ±${Math.round(accuracy)}m`;
-
-          // Hız km/s
-          const kmh = speed !== null && speed > 0 ? Math.round(speed * 3.6) : 0;
-          document.getElementById("liveSpeedText").innerText = kmh;
-
-          // Mesafe Ekleme (Doğruluk ve sıçrama filtresi)
-          if (lastCoords) {
-            const stepDist = getDistanceBetweenPoints(lastCoords.lat, lastCoords.lon, latitude, longitude);
-            if (stepDist > 0.005 && stepDist < 2.0 && accuracy < 40) {
-              totalDistanceKm += stepDist;
-            }
-          }
-
-          lastCoords = { lat: latitude, lon: longitude };
-          document.getElementById("tripDistanceText").innerText = totalDistanceKm.toFixed(1);
-
-          // Canlı Maliyet
-          const burnedLiters = (totalDistanceKm * avgConsumption) / 100;
-          const cost = Math.round(burnedLiters * unitFuelPrice);
-          document.getElementById("tripLitersText").innerText = `${burnedLiters.toFixed(2)} L tüketildi`;
-          document.getElementById("tripCostText").innerText = cost.toLocaleString('tr-TR');
-        },
-        (err) => {
-          document.getElementById("gpsStatusBadge").innerText = "Sinyal Yok ⚠️";
-        },
-        { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 }
-      );
     }
 
     // 7. Takibi İptal Et (Kaydetmeden Sil)
@@ -427,6 +444,7 @@
 
     window.addEventListener("DOMContentLoaded", () => {
       syncFromCarveriStorage();
+      initPassiveGps(); // Sayfa açıldığı an GPS'e bağlanıp hızı canlı gösterir
     });
   </script>
 </body>
