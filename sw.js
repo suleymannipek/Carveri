@@ -1,4 +1,4 @@
-const CACHE_NAME = 'carveri-v2.3.02'; // Yeni dosyaların hemen inmesi için sürüm artırıldı
+const CACHE_NAME = 'carveri-v2.3.03'; // Yeni dosyaların hemen inmesi için sürüm artırıldı
 
 const ASSETS_TO_CACHE = [
   './',
