@@ -308,25 +308,39 @@
     }
 
     // 8. Rotayı Bitirirken Düzenleme/Onay Penceresi Aç
+    // 8. Rotayı Bitirirken Kadrandaki Gerçek Tüketimi Al ve Kaydet
     function promptFinishRoute() {
       stopGpsWatch();
 
-      let defaultName = document.getElementById("routeNameInput").value.trim() || "GPS Rotası";
+      let defaultName = document.getElementById("routeNameInput").value.trim() || "Uzun Yol Rotası";
       let measuredKm = parseFloat(totalDistanceKm.toFixed(1));
 
-      // Kullanıcıya düzenleme imkanı sunan onay kutuları
-      const rName = prompt("Rota Adı:", defaultName);
-      if (rName === null) { startTripTracking(); return; } // Vazgeçerse takibe devam et
+      // 1. Adım: Rota İsmi
+      const rName = prompt("🧭 Rota Adı / Güzergah:", defaultName);
+      if (rName === null) { startTripTracking(); return; } // İptal ederse GPS takibine devam et
 
-      const distStr = prompt("Ölçülen Mesafe (KM):", measuredKm);
+      // 2. Adım: GPS Mesafesi Onayı (İstersen arabanın Trip sayacına göre düzeltebilirsin)
+      const distStr = prompt(
+        `🛣️ GPS ile Ölçülen Mesafe: ${measuredKm} KM\n` +
+        `Aracın trip sayacıyla birebir eşitlemek istersen değiştirebilirsin:`, 
+        measuredKm
+      );
       if (distStr === null) { startTripTracking(); return; }
 
-      const consStr = prompt("Ortalama Tüketim (L/100km):", avgConsumption.toFixed(2));
+      // 3. Adım: KADRANDAKİ UZUN YOL TÜKETİMİ (Kritik Nokta)
+      const consStr = prompt(
+        `📊 Yolculuk Sonu Gösterge Tüketimi:\n\n` +
+        `Şehir dışı tüketimi farklı olacağı için yol bilgisayarında bu yolculuk için yazan ortalamayı girin (L/100km):`, 
+        avgConsumption.toFixed(1)
+      );
       if (consStr === null) { startTripTracking(); return; }
 
       const finalKm = parseFloat(distStr) || measuredKm;
       const finalCons = parseFloat(consStr) || avgConsumption;
+      
+      // Gerçek uzun yol tüketimiyle harcanan net litre ve TL
       const finalLiters = parseFloat(((finalKm * finalCons) / 100).toFixed(2));
+      const finalCost = Math.round(finalLiters * unitFuelPrice);
 
       const newRoute = {
         id: "route_" + Date.now(),
@@ -337,7 +351,7 @@
         liters: finalLiters
       };
 
-      // Ana Carveri Pro LocalStorage'ına Doğrudan Kaydet
+      // Ana Carveri Pro'nun hafızasına doğrudan aktar
       let savedToStorage = false;
       try {
         let routes = [];
@@ -348,7 +362,7 @@
         savedToStorage = true;
       } catch (e) {}
 
-      // Eğer ZIP yüklenmişse ZIP'e de ekle ve indir
+      // ZIP yedek yüklüyse onu da güncelle
       if (fullBackupData) {
         if (!Array.isArray(fullBackupData.completedRoutes)) fullBackupData.completedRoutes = [];
         fullBackupData.completedRoutes.push(newRoute);
@@ -356,13 +370,14 @@
       }
 
       alert(
-        `✅ ROTA KAYDEDİLDİ!\n` +
-        `--------------------\n` +
-        `🧭 ${newRoute.name}\n` +
+        `✅ UZUN YOL ROTASI HESAPLANDI & KAYDEDİLDİ!\n` +
+        `----------------------------------------\n` +
+        `🧭 Güzergah: ${newRoute.name}\n` +
         `🛣️ Mesafe: ${finalKm} KM\n` +
-        `⛽ Tüketim: ${finalCons.toFixed(2)} L/100km\n` +
-        `💧 Harcanan: ~${finalLiters} L (~${Math.round(finalLiters * unitFuelPrice)} ₺)\n\n` +
-        (savedToStorage ? "✓ Ana Carveri Pro'ya otomatik aktarıldı!" : "")
+        `📊 Yol Bilgisayarı: ${finalCons.toFixed(2)} L/100km\n` +
+        `💧 Harcanan Saf Yakıt: ${finalLiters} Litre\n` +
+        `💰 Toplam Rota Maliyeti: ~${finalCost.toLocaleString('tr-TR')} ₺\n\n` +
+        (savedToStorage ? "✓ Ana Carveri Pro'ya başarıyla işlendi!" : "")
       );
 
       resetDisplay();
