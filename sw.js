@@ -1,4 +1,4 @@
-const CACHE_NAME = 'carveri-v26';
+const CACHE_NAME = 'carveri-v2.3.01';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -31,8 +31,9 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
 
-  // Cloudflare Worker canlı API isteklerini önbelleğe alma, doğrudan internetten çek
+  // Canlı fiyat botunu önbelleğe alma, internet varsa doğrudan getir
   if (url.hostname.includes('workers.dev')) {
+    e.respondWith(fetch(e.request).catch(() => new Response(JSON.stringify({}), { headers: { 'Content-Type': 'application/json' } })));
     return;
   }
 
