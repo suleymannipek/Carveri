@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>Carveri Trip & HUD</title>
-  <meta name="theme-color" content="#070d1e" />
+  <title>Carveri Trip & HUD - Premium OLED</title>
+  <meta name="theme-color" content="#000000" />
   <link rel="manifest" href="./manifest.json" />
 
   <script src="../libs/tailwind.js"></script>
@@ -23,143 +23,227 @@
       --sat: env(safe-area-inset-top, 0px);
       --sab: env(safe-area-inset-bottom, 0px);
     }
+    
+    /* TEMA 1: Extreme Bakır (Varsayılan) */
+    body.theme-copper {
+      --color-accent: #d97706; 
+      --color-glow: rgba(217, 119, 6, 0.4);
+      --bg-accent: rgba(217, 119, 6, 0.1);
+    }
+    /* TEMA 2: Neon Cyan */
+    body.theme-cyan {
+      --color-accent: #06b6d4;
+      --color-glow: rgba(6, 182, 212, 0.4);
+      --bg-accent: rgba(6, 182, 212, 0.1);
+    }
+    /* TEMA 3: Zümrüt Yeşil */
+    body.theme-emerald {
+      --color-accent: #10b981;
+      --color-glow: rgba(16, 185, 129, 0.4);
+      --bg-accent: rgba(16, 185, 129, 0.1);
+    }
+
     html, body {
-      height: 100dvh;
-      max-height: 100dvh;
-      overflow: hidden;
-      touch-action: manipulation;
-      background-color: #070d1e;
-      color: #f8fafc;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       user-select: none;
       -webkit-user-select: none;
+      touch-action: manipulation;
+      background-color: #000000;
     }
-    .hud-box {
-      background: linear-gradient(135deg, rgba(17, 28, 56, 0.85) 0%, rgba(10, 18, 38, 0.95) 100%);
-      border: 1px solid rgba(30, 44, 79, 0.9);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+
+    .glass-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
     }
-    .neon-dial {
-      box-shadow: inset 0 0 25px rgba(6, 182, 212, 0.2), 0 0 30px rgba(6, 182, 212, 0.12);
+
+    .accent-text { color: var(--color-accent); }
+    .accent-border { border-color: var(--color-accent); }
+    .accent-bg { background-color: var(--color-accent); }
+    
+    .glow-text {
+      text-shadow: 0 0 25px var(--color-glow);
+    }
+
+    /* Responsive Layout (Telefon vs Carlinkit) */
+    .content-wrapper {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+      padding-top: 1rem;
+    }
+    
+    .live-speed-val {
+      font-size: 130px;
+      line-height: 0.9;
+    }
+
+    @media (orientation: landscape) and (min-width: 600px) {
+      .content-wrapper {
+        flex-direction: row;
+        align-items: center;
+        gap: 2rem;
+      }
+      .main-speed {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        height: 100%;
+        border-right: 1px solid rgba(255,255,255,0.08);
+      }
+      .controls-panel {
+        flex: 1;
+        max-width: 450px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+      .live-speed-val { font-size: 160px; }
+      header { padding-bottom: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.08); }
     }
   </style>
 </head>
-<body class="flex flex-col justify-between p-3 max-w-md mx-auto pt-[calc(0.5rem+var(--sat))] pb-[calc(0.5rem+var(--sab))]">
+<body class="theme-copper text-white h-[100dvh] w-full overflow-hidden font-sans pt-[calc(0.5rem+var(--sat))] pb-[calc(0.5rem+var(--sab))] px-4 flex flex-col">
 
-  <!-- 1. ÜST PANEL: GERİ, PROFİL VE ZIP -->
-  <header class="hud-box rounded-2xl p-2.5 flex justify-between items-center shrink-0">
-    <div class="flex items-center gap-2 min-w-0">
-      <a href="../index.html" class="w-8 h-8 rounded-xl bg-slate-800/80 border border-slate-700/60 flex items-center justify-center text-xs text-cyan-400 hover:text-white transition-all shrink-0">◀</a>
-      <div class="min-w-0 truncate">
-        <div class="flex items-center gap-1.5">
-          <span class="text-xs font-black text-cyan-400 tracking-wider">CARVERİ</span>
-          <span class="text-[9px] bg-cyan-500/20 text-cyan-300 font-black px-1.5 py-0.5 rounded border border-cyan-500/30">HUD</span>
-        </div>
-        <p id="carDescHeader" class="text-[10px] text-slate-400 font-semibold truncate">Bağlanıyor...</p>
+  <!-- Üst Bilgi Barı -->
+  <header class="shrink-0 flex justify-between items-center py-2">
+    <div class="flex items-center gap-3">
+      <a href="../index.html" class="w-10 h-10 rounded-full glass-card flex items-center justify-center text-zinc-400 hover:text-white transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+      </a>
+      <div>
+        <h1 class="text-[13px] font-black tracking-widest text-zinc-300">CARVERI <span class="accent-text">HUD</span></h1>
+        <p id="carDescHeader" class="text-[10px] text-zinc-500 truncate w-32">Bağlanıyor...</p>
       </div>
     </div>
-    <div class="flex items-center gap-2 shrink-0">
-      <span id="gpsStatusBadge" class="text-[9px] font-black px-2 py-1 rounded-lg bg-emerald-950 text-emerald-400 border border-emerald-800/60">GPS Ready 🟢</span>
-      <label class="cursor-pointer bg-slate-800/60 hover:bg-slate-700/80 p-2 rounded-xl text-xs text-cyan-300 border border-slate-700/60" title="ZIP Yedeği Oku">
-        <span>📦</span>
-        <input type="file" accept=".zip" onchange="loadZipBackup(event)" class="hidden" />
-      </label>
+    <div class="flex items-center gap-3">
+      <button onclick="cycleTheme()" class="text-lg opacity-80 hover:opacity-100 transition-opacity" title="Temayı Değiştir">🎨</button>
+      <div class="flex flex-col items-end">
+        <span id="gpsStatusBadge" class="text-[9px] font-bold px-2 py-1 rounded-full glass-card accent-text">GPS Aranıyor</span>
+        <label class="text-[9px] text-zinc-500 mt-1 cursor-pointer hover:text-zinc-300">📦 Yükle
+          <input type="file" accept=".zip" onchange="loadZipBackup(event)" class="hidden" />
+        </label>
+      </div>
     </div>
   </header>
 
-  <!-- 2. HEDEF TARİF VE GOOGLE MAPS KÖPRÜSÜ -->
-  <div class="hud-box rounded-2xl p-1.5 shrink-0 my-1 border-slate-700/50">
-    <div class="flex gap-1.5 items-center">
-      <div class="pl-2 text-slate-400 text-xs">🔍</div>
-      <input type="text" id="targetNavInput" placeholder="Nereye gideceksiniz? (örn: Ankara AŞTİ)" class="flex-1 bg-transparent text-xs px-1 text-white outline-none font-medium placeholder-slate-500" />
-      <button onclick="launchExternalNav()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 text-[11px] font-black px-3.5 py-1.5 rounded-xl shadow transition-transform active:scale-95 shrink-0">
-        Tarif
-      </button>
+  <!-- Ana İçerik Alanı (Dikeyde alt alta, Yatayda yan yana) -->
+  <div class="content-wrapper">
+    
+    <!-- Hız Göstergesi -->
+    <main class="main-speed flex-1 flex flex-col items-center justify-center relative">
+      <span class="text-[10px] font-black accent-text tracking-[0.3em] uppercase mb-2">ANLIK HIZ</span>
+      <div class="flex items-baseline gap-2">
+        <span id="liveSpeedText" class="live-speed-val font-black tracking-tighter tabular-nums text-white glow-text">0</span>
+        <span class="text-xl font-bold text-zinc-600">km/s</span>
+      </div>
+      <p id="accuracyText" class="text-[11px] text-zinc-600 mt-3 font-medium">±0m Doğruluk</p>
+    </main>
+
+    <!-- Veri Kartları ve Kontroller -->
+    <section class="controls-panel shrink-0 space-y-3 pb-2 w-full mx-auto">
+      
+      <!-- Rota Adı ve Harita -->
+      <div class="flex gap-2">
+        <input type="text" id="routeNameInput" placeholder="Rota İsmi (Örn: İşe Gidiş)" class="flex-1 glass-card rounded-2xl px-4 py-3.5 text-xs text-white placeholder-zinc-600 focus:accent-border outline-none transition-colors" />
+        <button onclick="launchExternalNav()" class="glass-card hover:bg-white/10 text-zinc-300 px-4 rounded-2xl text-[11px] font-bold flex items-center justify-center transition-colors">🗺️ Harita</button>
+      </div>
+
+      <!-- Tüketim ve Mesafe Kartları -->
+      <div class="grid grid-cols-2 gap-3">
+        <div class="glass-card rounded-2xl p-4 flex flex-col justify-center relative overflow-hidden">
+          <div class="absolute top-0 left-0 w-full h-1 accent-bg opacity-50"></div>
+          <span class="text-[9px] uppercase text-zinc-500 font-bold tracking-wider">MESAFE / SÜRE</span>
+          <div class="flex items-baseline gap-1 mt-1.5">
+            <span id="tripDistanceText" class="text-3xl font-black tabular-nums">0.0</span>
+            <span class="text-[10px] text-zinc-400">KM</span>
+          </div>
+          <p id="tripTimeText" class="text-[11px] accent-text mt-1 font-mono font-bold">00:00</p>
+        </div>
+        
+        <div class="glass-card rounded-2xl p-4 flex flex-col justify-center relative overflow-hidden">
+          <div class="absolute top-0 left-0 w-full h-1 bg-zinc-700 opacity-50"></div>
+          <span class="text-[9px] uppercase text-zinc-500 font-bold tracking-wider">YAKIT MALİYETİ</span>
+          <div class="flex items-baseline gap-1 mt-1.5">
+            <span class="text-[11px] text-zinc-400">₺</span>
+            <span id="tripCostText" class="text-3xl font-black text-white tabular-nums">0</span>
+          </div>
+          <p id="tripLitersText" class="text-[10px] text-zinc-500 mt-1">0.00 L tüketildi</p>
+        </div>
+      </div>
+      <div id="autoParamsBadge" class="text-[9px] text-zinc-600 text-center font-medium">Tüketim Yükleniyor...</div>
+
+      <!-- Başlat / Bitir Butonları -->
+      <div id="btnGroupStart" class="pt-1">
+        <button onclick="startTripTracking()" class="w-full py-4.5 bg-white text-black font-black text-xs uppercase tracking-widest rounded-2xl transition-transform active:scale-95 shadow-[0_0_20px_rgba(255,255,255,0.2)]">
+          🚀 SÜRÜŞÜ BAŞLAT
+        </button>
+      </div>
+      
+      <div id="btnGroupStop" class="grid grid-cols-3 gap-2 hidden pt-1">
+        <button onclick="cancelTripTracking()" class="col-span-1 py-4 glass-card text-rose-500 font-bold text-xs rounded-2xl active:scale-95 transition-all">İptal</button>
+        <button onclick="openFinishModal()" class="col-span-2 py-4 accent-bg text-black font-black text-xs uppercase tracking-widest rounded-2xl active:scale-95 transition-all glow-text" style="text-shadow: none;">
+          ⏹️ BİTİR & KAYDET
+        </button>
+      </div>
+    </section>
+  </div>
+
+  <!-- Sürüş Bitiş Ekranı (Modal) -->
+  <div id="finishModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center hidden transition-opacity p-4">
+    <div class="glass-card w-full max-w-md rounded-3xl p-6 shadow-[0_10px_40px_rgba(0,0,0,0.8)] border-t border-white/20">
+      <h3 class="accent-text font-black text-lg mb-5 uppercase tracking-wider text-center">🏁 SÜRÜŞ ÖZETİ</h3>
+      <div class="space-y-4">
+        <div>
+          <label class="text-[10px] text-zinc-400 uppercase font-bold tracking-widest">Rota Adı</label>
+          <input type="text" id="modalRouteName" class="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3.5 text-xs text-white mt-1.5 focus:accent-border outline-none transition-colors" />
+        </div>
+        <div class="flex gap-3">
+          <div class="flex-1">
+            <label class="text-[10px] text-zinc-400 uppercase font-bold tracking-widest">Ölçülen (KM)</label>
+            <input type="number" step="0.1" id="modalDistance" class="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3.5 text-sm text-white font-black mt-1.5 outline-none focus:accent-border" />
+          </div>
+          <div class="flex-1">
+            <label class="text-[10px] text-zinc-400 uppercase font-bold tracking-widest">Tüketim (L)</label>
+            <input type="number" step="0.1" id="modalConsumption" class="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3.5 text-sm text-white font-black mt-1.5 outline-none focus:accent-border" />
+          </div>
+        </div>
+      </div>
+      <div class="flex gap-3 mt-8">
+        <button onclick="closeFinishModal()" class="flex-1 py-3.5 glass-card text-zinc-300 font-bold rounded-xl text-xs uppercase tracking-wider">Vazgeç</button>
+        <button onclick="finalizeRouteSave()" class="flex-1 py-3.5 accent-bg text-black font-black rounded-xl text-xs uppercase tracking-wider">Hesapla & Kaydet</button>
+      </div>
     </div>
   </div>
 
-  <!-- 3. ANA DİJİTAL KADRAN (HUD HIZ GÖSTERGESİ) -->
-  <main class="flex-1 flex flex-col justify-around my-0.5 min-h-0 space-y-2">
-    <div class="hud-box rounded-3xl p-3 text-center neon-border relative flex flex-col justify-center items-center flex-1 min-h-[130px] border-cyan-500/30">
-      
-      <!-- Arka plan dijital yay efekti -->
-      <div class="absolute inset-x-4 top-2 flex justify-between px-6 opacity-30 pointer-events-none">
-        <span class="text-[9px] font-bold text-cyan-400">0</span>
-        <span class="text-[9px] font-bold text-cyan-400">60</span>
-        <span class="text-[9px] font-bold text-cyan-400">120</span>
-        <span class="text-[9px] font-bold text-cyan-400">180+</span>
-      </div>
-
-      <span class="text-[9px] uppercase font-black tracking-widest text-slate-400 mt-1">ANLIK HIZ</span>
-      
-      <div class="flex items-baseline justify-center gap-1 my-0">
-        <span id="liveSpeedText" class="text-7xl font-black text-cyan-400 tracking-tighter drop-shadow-[0_0_25px_rgba(6,182,212,0.5)]">0</span>
-        <span class="text-xs font-black text-slate-400 uppercase">km/s</span>
-      </div>
-
-      <p id="accuracyText" class="text-[9px] text-slate-400 font-medium">Doğruluk: ±0m</p>
-    </div>
-
-    <!-- 4. ROTA VE MALİYET KARTLARI (YATAY İKİ SÜTUN) -->
-    <div class="grid grid-cols-2 gap-2.5 shrink-0">
-      <!-- Rota Kartı -->
-      <div class="hud-box rounded-2xl p-2.5 border-blue-500/30 text-center relative overflow-hidden">
-        <span class="text-[9px] font-black uppercase text-blue-400 block tracking-wider">BU ROTA (TRIP)</span>
-        <div class="flex items-baseline justify-center gap-0.5 mt-0.5">
-          <span id="tripDistanceText" class="text-2xl font-black text-slate-100">0.0</span>
-          <span class="text-[10px] text-blue-400 font-black">KM</span>
-        </div>
-        <p id="tripTimeText" class="text-[9px] text-slate-400 font-semibold mt-0.5">Süre: 00:00</p>
-      </div>
-
-      <!-- Harcanan Bedel Kartı -->
-      <div class="hud-box rounded-2xl p-2.5 border-amber-500/30 text-center relative overflow-hidden">
-        <span class="text-[9px] font-black uppercase text-amber-500 block tracking-wider">HARCANAN BEDEL</span>
-        <div class="flex items-baseline justify-center gap-0.5 mt-0.5">
-          <span class="text-xs font-black text-amber-500">₺</span>
-          <span id="tripCostText" class="text-2xl font-black text-amber-400">0</span>
-        </div>
-        <p id="tripLitersText" class="text-[9px] text-slate-400 font-semibold mt-0.5">0.00 L tüketildi</p>
-      </div>
-    </div>
-
-    <!-- Rota İsmi ve Tüketim Bilgi Satırı -->
-    <div class="hud-box rounded-2xl p-2.5 shrink-0 space-y-1.5 border-slate-700/60">
-      <div class="flex justify-between items-center text-[9px] px-1">
-        <span class="font-bold text-slate-400">Rota İsmi</span>
-        <span id="autoParamsBadge" class="text-cyan-400 font-bold">Tüketim: 6.5 L • Fiyat: 0.00 ₺</span>
-      </div>
-      <input type="text" id="routeNameInput" placeholder="örn: Şehir İçi / Eskişehir - Bursa" class="w-full bg-slate-900/80 border border-slate-700/60 text-xs px-2.5 py-2 rounded-xl text-white outline-none font-bold" />
-    </div>
-  </main>
-
-  <!-- 5. ALT KONTROL BUTONLARI -->
-  <footer class="shrink-0 pt-1">
-    <div id="btnGroupStart">
-      <button onclick="startTripTracking()" class="w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 text-white font-black text-xs rounded-2xl shadow-lg flex items-center justify-center gap-2 active:scale-98 transition-all">
-        <span>🚀</span> Rotayı Başlat & Takip Et
-      </button>
-    </div>
-
-    <div id="btnGroupStop" class="grid grid-cols-2 gap-2.5 hidden">
-      <button onclick="cancelTripTracking()" class="py-2.5 bg-rose-950/80 hover:bg-rose-900 text-rose-300 font-bold text-xs rounded-xl border border-rose-800/60 shadow">
-        İptal Et
-      </button>
-      <button onclick="promptFinishRoute()" class="py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-black text-xs rounded-xl shadow-lg active:scale-98 transition-all">
-        Rotayı Bitir & Kaydet
-      </button>
-    </div>
-  </footer>
-
   <script>
+    // --- TEMA MOTORU ---
+    const themes = ['theme-copper', 'theme-cyan', 'theme-emerald'];
+    let currentThemeIdx = 0;
+
+    function initTheme() {
+      const savedTheme = localStorage.getItem('hud_theme') || 'theme-copper';
+      currentThemeIdx = themes.indexOf(savedTheme) !== -1 ? themes.indexOf(savedTheme) : 0;
+      document.body.className = `${savedTheme} text-white h-[100dvh] w-full overflow-hidden font-sans pt-[calc(0.5rem+var(--sat))] pb-[calc(0.5rem+var(--sab))] px-4 flex flex-col`;
+    }
+
+    function cycleTheme() {
+      const oldTheme = themes[currentThemeIdx];
+      currentThemeIdx = (currentThemeIdx + 1) % themes.length;
+      const newTheme = themes[currentThemeIdx];
+      
+      document.body.classList.remove(oldTheme);
+      document.body.classList.add(newTheme);
+      localStorage.setItem('hud_theme', newTheme);
+    }
+
+    // --- MEVCUT JS MANTIKLARI ---
     const STORAGE_PREFIX = "ototakip_promax_";
     let fullBackupData = null;
-
     let avgConsumption = 6.5; 
     let unitFuelPrice = 45.0;  
-
     let isTracking = false;
     let watchId = null;
     let startTime = null;
@@ -182,9 +266,7 @@
         if (rawOdo) {
           const odos = JSON.parse(rawOdo);
           const valid = odos.filter(o => o.dashboardL100 > 0);
-          if (valid.length > 0) {
-            avgConsumption = parseFloat(valid[valid.length - 1].dashboardL100) || avgConsumption;
-          }
+          if (valid.length > 0) avgConsumption = parseFloat(valid[valid.length - 1].dashboardL100) || avgConsumption;
         }
 
         const rawPrices = localStorage.getItem(STORAGE_PREFIX + "live_fuel_prices");
@@ -197,24 +279,15 @@
             if (priceStr) unitFuelPrice = parseFloat(String(priceStr).replace(",", ".")) || unitFuelPrice;
           }
         }
-
-        document.getElementById("autoParamsBadge").innerText = `Tüketim: ${avgConsumption.toFixed(1)} L • Fiyat: ${unitFuelPrice.toFixed(2)} ₺`;
+        document.getElementById("autoParamsBadge").innerText = `Kayıtlı Tüketim: ${avgConsumption.toFixed(1)} L • Fiyat: ${unitFuelPrice.toFixed(2)} ₺`;
       } catch (e) {}
     }
 
     async function requestWakeLock() {
-      try {
-        if ('wakeLock' in navigator) {
-          wakeLock = await navigator.wakeLock.request('screen');
-        }
-      } catch (err) {}
+      try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {}
     }
-
     function releaseWakeLock() {
-      if (wakeLock !== null) {
-        wakeLock.release().catch(() => {});
-        wakeLock = null;
-      }
+      if (wakeLock !== null) { wakeLock.release().catch(() => {}); wakeLock = null; }
     }
 
     async function loadZipBackup(event) {
@@ -224,28 +297,23 @@
         const zip = await JSZip.loadAsync(file);
         const jsonFile = zip.file("veriler.json");
         if (!jsonFile) return alert("Geçersiz yedek: veriler.json bulunamadı.");
-
         const text = await jsonFile.async("text");
         fullBackupData = JSON.parse(text);
 
-        if (fullBackupData.profile) {
-          document.getElementById("carDescHeader").innerText = `${fullBackupData.profile.name} • ${fullBackupData.profile.desc || ''}`;
-        }
+        if (fullBackupData.profile) document.getElementById("carDescHeader").innerText = `${fullBackupData.profile.name} • ${fullBackupData.profile.desc || ''}`;
         if (Array.isArray(fullBackupData.odoLogs)) {
           const validOdos = fullBackupData.odoLogs.filter(o => o.dashboardL100 > 0);
           if (validOdos.length > 0) avgConsumption = validOdos[validOdos.length - 1].dashboardL100;
         }
 
-        document.getElementById("autoParamsBadge").innerText = `Tüketim: ${avgConsumption.toFixed(1)} L • Fiyat: ${unitFuelPrice.toFixed(2)} ₺`;
+        document.getElementById("autoParamsBadge").innerText = `Kayıtlı Tüketim: ${avgConsumption.toFixed(1)} L • Fiyat: ${unitFuelPrice.toFixed(2)} ₺`;
         alert("✓ Carveri Pro ZIP verileri başarıyla yüklendi!");
-      } catch (err) {
-        alert("Yedek okuma hatası: " + err.message);
-      }
+      } catch (err) { alert("Yedek okuma hatası: " + err.message); }
     }
 
     function launchExternalNav() {
-      const target = document.getElementById("targetNavInput").value.trim();
-      if (!target) return alert("Lütfen gitmek istediğiniz konumu yazın.");
+      const target = document.getElementById("routeNameInput").value.trim();
+      if (!target) return alert("Lütfen gitmek istediğiniz konumu (Rota Adı) yazın.");
       const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(target)}`;
       window.open(mapsUrl, "_blank");
     }
@@ -254,30 +322,23 @@
       const R = 6371;
       const dLat = (lat2 - lat1) * Math.PI / 180;
       const dLon = (lon2 - lon1) * Math.PI / 180;
-      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                Math.sin(dLon/2) * Math.sin(dLon/2);
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
       const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
       return R * c;
     }
 
     function initPassiveGps() {
       if (!navigator.geolocation) {
-        document.getElementById("gpsStatusBadge").innerText = "GPS Yok ❌";
-        return;
+        document.getElementById("gpsStatusBadge").innerText = "GPS Yok ❌"; return;
       }
-
-      document.getElementById("gpsStatusBadge").innerText = "Uydu Aranıyor 📡";
-      document.getElementById("gpsStatusBadge").className = "text-[9px] font-black px-2 py-1 rounded-lg bg-amber-950 text-amber-400 border border-amber-800/60";
-
+      
       watchId = navigator.geolocation.watchPosition(
         (pos) => {
           const { latitude, longitude, speed, accuracy } = pos.coords;
-          document.getElementById("accuracyText").innerText = `Doğruluk: ±${Math.round(accuracy)}m`;
+          document.getElementById("accuracyText").innerText = `±${Math.round(accuracy)}m Doğruluk`;
 
           if (!isTracking) {
             document.getElementById("gpsStatusBadge").innerText = "GPS Hazır 🟢";
-            document.getElementById("gpsStatusBadge").className = "text-[9px] font-black px-2 py-1 rounded-lg bg-emerald-950 text-emerald-400 border border-emerald-800/60";
           }
 
           const kmh = speed !== null && speed > 0 ? Math.round(speed * 3.6) : 0;
@@ -299,84 +360,100 @@
             document.getElementById("tripCostText").innerText = cost.toLocaleString('tr-TR');
           }
         },
-        (err) => {
-          document.getElementById("gpsStatusBadge").innerText = "Sinyal Yok ⚠️";
-        },
+        (err) => { document.getElementById("gpsStatusBadge").innerText = "Sinyal Yok ⚠️"; },
         { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 }
       );
     }
 
     function startTripTracking() {
-      totalDistanceKm = 0;
-      lastCoords = null;
-      startTime = Date.now();
-      isTracking = true;
-
+      totalDistanceKm = 0; lastCoords = null; startTime = Date.now(); isTracking = true;
       requestWakeLock();
-
       document.getElementById("btnGroupStart").classList.add("hidden");
       document.getElementById("btnGroupStop").classList.remove("hidden");
+      
       document.getElementById("gpsStatusBadge").innerText = "Kayıt 🔴";
-      document.getElementById("gpsStatusBadge").className = "text-[9px] font-black px-2 py-1 rounded-lg bg-rose-950 text-rose-400 border border-rose-800/60 animate-pulse";
+      document.getElementById("gpsStatusBadge").classList.add("animate-pulse");
 
       timerInterval = setInterval(() => {
         const sec = Math.floor((Date.now() - startTime) / 1000);
         const m = String(Math.floor(sec / 60)).padStart(2, '0');
         const s = String(sec % 60).padStart(2, '0');
-        document.getElementById("tripTimeText").innerText = `Süre: ${m}:${s}`;
+        document.getElementById("tripTimeText").innerText = `${m}:${s}`;
       }, 1000);
     }
 
     function cancelTripTracking() {
-      if (!confirm("Bu rota kaydını iptal etmek ve silmek istediğinize emin misiniz?")) return;
-      stopGpsWatch();
-      resetDisplay();
-      initPassiveGps();
+      if (!confirm("Bu rota kaydını iptal etmek istediğinize emin misiniz?")) return;
+      stopGpsWatch(); resetDisplay(); initPassiveGps();
     }
 
-    function promptFinishRoute() {
-      stopGpsWatch();
+    function stopGpsWatch() {
+      if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+      if (timerInterval) clearInterval(timerInterval);
+      releaseWakeLock(); isTracking = false;
+    }
 
+    function resetDisplay() {
+      document.getElementById("btnGroupStart").classList.remove("hidden");
+      document.getElementById("btnGroupStop").classList.add("hidden");
+      document.getElementById("tripDistanceText").innerText = "0.0";
+      document.getElementById("tripCostText").innerText = "0";
+      document.getElementById("tripLitersText").innerText = "0.00 L tüketildi";
+      document.getElementById("tripTimeText").innerText = "00:00";
+      document.getElementById("routeNameInput").value = "";
+      document.getElementById("gpsStatusBadge").classList.remove("animate-pulse");
+      document.getElementById("gpsStatusBadge").innerText = "GPS Hazır 🟢";
+    }
+
+    function openFinishModal() {
+      stopGpsWatch(); 
       let defaultName = document.getElementById("routeNameInput").value.trim() || "Uzun Yol Rotası";
-      let measuredKm = parseFloat(totalDistanceKm.toFixed(1));
+      document.getElementById("modalRouteName").value = defaultName;
+      document.getElementById("modalDistance").value = parseFloat(totalDistanceKm.toFixed(1));
+      document.getElementById("modalConsumption").value = avgConsumption.toFixed(1);
+      
+      document.getElementById("finishModal").classList.remove("hidden");
+    }
 
-      const rName = prompt("🧭 Rota Adı / Güzergah:", defaultName);
-      if (rName === null) { startTripTracking(); return; }
+    function closeFinishModal() {
+      document.getElementById("finishModal").classList.add("hidden");
+      startTime = Date.now() - (document.getElementById("tripTimeText").innerText.split(":")[0]*60000 + document.getElementById("tripTimeText").innerText.split(":")[1]*1000);
+      isTracking = true;
+      initPassiveGps();
+      
+      document.getElementById("gpsStatusBadge").innerText = "Kayıt 🔴";
+      document.getElementById("gpsStatusBadge").classList.add("animate-pulse");
+      timerInterval = setInterval(() => {
+        const sec = Math.floor((Date.now() - startTime) / 1000);
+        const m = String(Math.floor(sec / 60)).padStart(2, '0');
+        const s = String(sec % 60).padStart(2, '0');
+        document.getElementById("tripTimeText").innerText = `${m}:${s}`;
+      }, 1000);
+    }
 
-      const distStr = prompt(
-        `🛣️ GPS ile Ölçülen Mesafe: ${measuredKm} KM\nTrip sayacıyla eşitlemek isterseniz değiştirebilirsiniz:`, 
-        measuredKm
-      );
-      if (distStr === null) { startTripTracking(); return; }
-
-      const consStr = prompt(
-        `📊 Yolculuk Sonu Gösterge Tüketimi (L/100km):`, 
-        avgConsumption.toFixed(1)
-      );
-      if (consStr === null) { startTripTracking(); return; }
-
-      const finalKm = parseFloat(distStr) || measuredKm;
-      const finalCons = parseFloat(consStr) || avgConsumption;
+    function finalizeRouteSave() {
+      const rName = document.getElementById("modalRouteName").value.trim() || "Belirtilmedi";
+      const finalKm = parseFloat(document.getElementById("modalDistance").value) || parseFloat(totalDistanceKm.toFixed(1));
+      const finalCons = parseFloat(document.getElementById("modalConsumption").value) || avgConsumption;
+      
       const finalLiters = parseFloat(((finalKm * finalCons) / 100).toFixed(2));
       const finalCost = Math.round(finalLiters * unitFuelPrice);
 
       const newRoute = {
         id: "route_" + Date.now(),
-        name: rName.trim() || defaultName,
+        name: rName,
         date: new Date().toISOString(),
         distance: finalKm,
         consumption: finalCons.toFixed(2),
         liters: finalLiters
       };
 
-      let savedToStorage = false;
       try {
         let routes = [];
         const raw = localStorage.getItem(STORAGE_PREFIX + "completed_routes");
         if (raw) routes = JSON.parse(raw);
         routes.push(newRoute);
         localStorage.setItem(STORAGE_PREFIX + "completed_routes", JSON.stringify(routes));
-        savedToStorage = true;
       } catch (e) {}
 
       if (fullBackupData) {
@@ -385,18 +462,11 @@
         exportUpdatedZip();
       }
 
-      alert(
-        `✅ ROTA HESAPLANDI & KAYDEDİLDİ!\n` +
-        `----------------------------------------\n` +
-        `🧭 Güzergah: ${newRoute.name}\n` +
-        `🛣️ Mesafe: ${finalKm} KM\n` +
-        `📊 Gösterge: ${finalCons.toFixed(2)} L/100km\n` +
-        `💧 Harcanan: ${finalLiters} L (~${finalCost.toLocaleString('tr-TR')} ₺)\n\n` +
-        (savedToStorage ? "✓ Ana Carveri Pro'ya aktarıldı!" : "")
-      );
-
+      document.getElementById("finishModal").classList.add("hidden");
       resetDisplay();
       initPassiveGps();
+      
+      alert(`✅ ROTA KAYDEDİLDİ!\n🧭 ${newRoute.name}\n🛣️ ${finalKm} KM\n💧 ${finalLiters} L (~${finalCost.toLocaleString('tr-TR')} ₺)`);
     }
 
     async function exportUpdatedZip() {
@@ -407,32 +477,13 @@
         const a = document.createElement("a");
         a.href = URL.createObjectURL(blob);
         a.download = `Carveri_Yedek_${new Date().toISOString().split("T")[0]}.zip`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
       } catch (e) {}
     }
 
-    function stopGpsWatch() {
-      if (watchId !== null) navigator.geolocation.clearWatch(watchId);
-      if (timerInterval) clearInterval(timerInterval);
-      releaseWakeLock();
-      isTracking = false;
-    }
-
-    function resetDisplay() {
-      document.getElementById("btnGroupStart").classList.remove("hidden");
-      document.getElementById("btnGroupStop").classList.add("hidden");
-      document.getElementById("tripDistanceText").innerText = "0.0";
-      document.getElementById("tripCostText").innerText = "0";
-      document.getElementById("tripLitersText").innerText = "0.00 L tüketildi";
-      document.getElementById("tripTimeText").innerText = "Süre: 00:00";
-      document.getElementById("targetNavInput").value = "";
-      document.getElementById("routeNameInput").value = "";
-    }
-
     window.addEventListener("DOMContentLoaded", () => {
-      syncFromCarveriStorage();
+      initTheme();
+      syncFromCarveriStorage(); 
       initPassiveGps();
     });
   </script>
