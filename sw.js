@@ -1,4 +1,4 @@
-const CACHE_NAME = 'carveri-v2.3.03'; // Yeni dosyaların hemen inmesi için sürüm artırıldı
+const CACHE_NAME = 'carveri-v2.3.04'; // İkonların hemen inmesi için sürüm artırıldı
 
 const ASSETS_TO_CACHE = [
   './',
@@ -7,11 +7,19 @@ const ASSETS_TO_CACHE = [
   './libs/tailwind.js',
   './libs/chart.js',
   './libs/jszip.min.js',
-  // --- CARVERI TRIP DOSYALARI EKLENDİ ---
+
+  // --- CARVERI PRO İKONLARI ---
+  './iconc-192.png',
+  './iconc-512.png',
+
+  // --- CARVERI TRIP DOSYALARI & İKONLARI ---
   './trip/index.html',
-  './trip/manifest.json'
+  './trip/manifest.json',
+  './icon-192.png',
+  './icon-512.png'
 ];
 
+// 1. Kurulum: Tüm statik dosyaları önbelleğe al
 self.addEventListener('install', (e) => {
   e.waitUntil(
     caches.open(CACHE_NAME)
@@ -20,6 +28,7 @@ self.addEventListener('install', (e) => {
   );
 });
 
+// 2. Aktivasyon: Eski sürümleri temizle ve hemen kontrolü ele al
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keys) => {
@@ -32,10 +41,11 @@ self.addEventListener('activate', (e) => {
   );
 });
 
+// 3. İstek Yönetimi: Çevrimdışı ve Canlı ayrımı
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
 
-  // Canlı fiyat botunu önbelleğe alma, internet varsa doğrudan getir
+  // Canlı Cloudflare Worker botunu önbelleğe alma
   if (url.hostname.includes('workers.dev')) {
     e.respondWith(
       fetch(e.request).catch(() => new Response(JSON.stringify({}), { headers: { 'Content-Type': 'application/json' } }))
@@ -45,12 +55,15 @@ self.addEventListener('fetch', (e) => {
 
   e.respondWith(
     caches.match(e.request).then((cachedResponse) => {
+      // Önbellekte varsa doğrudan ver
       if (cachedResponse) return cachedResponse;
 
-      return fetch(e.request).catch(() => {
-        // Çevrimdışıyken navigasyon yönlendirmesi
+      // Yoksa internetten çek
+      return fetch(e.request).then((networkResponse) => {
+        return networkResponse;
+      }).catch(() => {
+        // İnternet yoksa (Çevrimdışı / Offline Navigasyon)
         if (e.request.mode === 'navigate') {
-          // Eğer /trip/ sayfasındaysan trip'i aç, ana sayfadaysan ana Carveriyi aç
           if (url.pathname.includes('/trip')) {
             return caches.match('./trip/index.html');
           }
