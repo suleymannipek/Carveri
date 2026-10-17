@@ -5,6 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Carveri Trip & HUD</title>
   <meta name="theme-color" content="#0b1329" />
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('../sw.js', { scope: '../' }).catch(() => {});
+      });
+    }
+  </script>
   <link rel="manifest" href="./manifest.json" />
 
   <!-- Üst dizindeki mevcut yerel kütüphaneler -->
