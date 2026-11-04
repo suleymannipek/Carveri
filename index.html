@@ -269,7 +269,7 @@
 
     <!-- 1. SEKME: ÖZET -->
     <div id="tabDashboard" class="space-y-3.5">
-      <!-- CANLI AKARYAKIT FİYATLARI KARTI (TIKLANABİLİR) -->
+      <!-- CANLI AKARYAKIT FİYATLARI KARTI -->
       <div id="liveFuelPricesCard" onclick="openAllFuelPricesModal()" class="custom-card p-3 shadow-md border-amber-500/30 cursor-pointer hover:border-amber-500/60 transition-all active:scale-[0.99]">
         <div class="flex justify-between items-center mb-2">
           <div class="flex items-center gap-1.5">
@@ -295,6 +295,8 @@
           </div>
         </div>
       </div>
+
+      <!-- HATIRLATICILAR ŞERİDİ -->
       <div id="collapsibleReminderStrip" class="custom-card p-3 shadow-md cursor-pointer border-cyan-800/40" onclick="toggleSubReminderPanel()">
         <div class="flex justify-between items-center text-xs">
           <div class="flex items-center gap-2 truncate">
@@ -307,6 +309,7 @@
         <div id="subReminderDetails" class="grid grid-cols-2 gap-2 text-[11px] pt-2.5 mt-2 border-t border-slate-700/40 hidden"></div>
       </div>
 
+      <!-- AKTİF ROTA BANNERI (Varsa) -->
       <div id="activeRouteBanner" class="custom-card p-3 shadow border-cyan-500/50 hidden">
         <div class="flex justify-between items-start">
           <div>
@@ -331,60 +334,8 @@
         </div>
         <div id="completedRoutesList" class="space-y-2 text-xs"></div>
       </div>
-	  
-    <!-- YILIN EN VERİMLİ / EN MASRAFLI AYI SKOR KARTI -->
-      <div id="annualScoreCard" class="custom-card p-3 shadow-md border-indigo-500/30 grid grid-cols-2 gap-2 text-xs">
-        <div class="p-2 rounded-xl theme-sub-box border border-emerald-500/30">
-          <span class="text-[9px] text-emerald-500 font-black block uppercase">🏆 En Ekonomik Ay</span>
-          <b id="bestMonthScore" class="text-xs font-black text-emerald-400 mt-0.5 block">--</b>
-          <span id="bestMonthDetail" class="text-[9px] custom-muted font-bold">Hesaplanıyor...</span>
-        </div>
-        <div class="p-2 rounded-xl theme-sub-box border border-rose-500/30">
-          <span class="text-[9px] text-rose-500 font-black block uppercase">⚠️ En Yüksek Harcama</span>
-          <b id="highestMonthScore" class="text-xs font-black text-rose-400 mt-0.5 block">--</b>
-          <span id="highestMonthDetail" class="text-[9px] custom-muted font-bold">Hesaplanıyor...</span>
-        </div>
-      </div>
 
-      <!-- SEYAHAT & ROTA MALİYET SİMÜLATÖRÜ -->
-      <div class="custom-card p-3 shadow-md border-cyan-500/30 space-y-2">
-        <div class="flex justify-between items-center">
-          <div class="flex items-center gap-1.5">
-            <span class="text-base">🧭</span>
-            <h4 class="text-xs font-black text-cyan-600 dark:text-cyan-400">Seyahat Maliyet Simülatörü</h4>
-          </div>
-          <span class="text-[9px] theme-badge-cyan font-black px-2 py-0.5 rounded">Hızlı Hesap</span>
-        </div>
-        <div class="flex gap-2 items-center">
-          <input type="number" id="simDistanceInput" oninput="calculateTripEstimateLive()" placeholder="Gidilecek Mesafe (km)" class="flex-1 custom-input border p-2 rounded-xl text-xs font-black outline-none shadow-inner" />
-          <button onclick="calculateTripEstimateLive()" class="px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-black shadow">Hesapla</button>
-        </div>
-        <div id="simResultBox" class="p-2.5 rounded-xl theme-sub-box border border-cyan-500/20 text-xs hidden flex justify-between items-center">
-          <div>
-            <span class="text-[9px] custom-muted block font-semibold">Tahmini Tüketim:</span>
-            <b id="simFuelLit" class="text-xs font-black text-cyan-400">0.0 L</b>
-          </div>
-          <div class="text-right">
-            <span class="text-[9px] custom-muted block font-semibold">Tahmini Yakıt Tutarı:</span>
-            <b id="simFuelCost" class="text-sm font-black text-emerald-400">₺0</b>
-          </div>
-        </div>
-      </div>
-
-	  <!-- CARVERI TRIP / GPS MODU KÖPRÜSÜ -->
-      <div class="custom-card p-3 shadow-md border-cyan-500/40 flex justify-between items-center bg-gradient-to-r from-cyan-950/20 to-blue-950/10">
-        <div class="flex items-center gap-2.5">
-          <span class="text-xl">🧭</span>
-          <div>
-            <h4 class="text-xs font-black text-cyan-600 dark:text-cyan-400">Canlı Yol & GPS Takometre</h4>
-            <p class="text-[10px] custom-muted font-medium">Hız, trip mesafesi ve anlık TL harcama sayacı</p>
-          </div>
-        </div>
-        <a href="./trip/index.html" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white text-[11px] font-black rounded-xl shadow whitespace-nowrap transition-transform active:scale-95 flex items-center gap-1">
-          <span>Aç</span> <span>▶</span>
-        </a>
-      </div>
-
+      <!-- DÖNEM & KAYIT BİLGİ ŞERİDİ -->
       <div class="flex justify-between items-center px-1">
         <span class="text-[11px] font-bold custom-muted tracking-wide flex items-center gap-1">
           <span>📅</span> <span id="dashPeriodTitle">Dönem: --</span>
@@ -392,7 +343,9 @@
         <span id="dashTotalEntries" class="text-[10px] font-extrabold theme-badge-cyan px-2 py-0.5 rounded-full">0 Kayıt</span>
       </div>
 
+      <!-- 【 BÖLÜM 1: TÜKETİM & VERİMLİLİK 】 -->
       <div class="grid grid-cols-2 gap-2.5">
+        <!-- Gerçek Tüketim -->
         <div class="custom-card p-3.5 shadow relative overflow-hidden group hover:border-cyan-500/50 transition-colors">
           <div class="flex justify-between items-start">
             <span class="text-[9px] font-extrabold custom-muted uppercase tracking-wider">GERÇEK TÜKETİM</span>
@@ -405,6 +358,22 @@
           <p id="statAvgCons" class="text-[10px] custom-muted mt-1 font-semibold">Dönem Ort: -- L</p>
         </div>
 
+        <!-- Yol Bilgisayarı Sapma -->
+        <div class="custom-card p-3.5 shadow relative overflow-hidden group hover:border-blue-500/50 transition-colors">
+          <div class="flex justify-between items-start">
+            <span class="text-[9px] font-extrabold text-blue-500 uppercase tracking-wider">YOL BİLG. FARKI</span>
+            <span class="w-6 h-6 rounded-lg theme-badge-blue flex items-center justify-center text-[11px] shadow-sm font-bold">📊</span>
+          </div>
+          <div class="mt-1.5">
+            <span id="statDashBiasVal" class="text-2xl font-black text-blue-500 dark:text-blue-400 tracking-tight">--</span>
+          </div>
+          <p id="statDashBiasDesc" class="text-[10px] custom-muted mt-1 font-semibold leading-tight">Yol bilgisayarı sapması</p>
+        </div>
+      </div>
+
+      <!-- 【 BÖLÜM 2: MALİYET & KULLANIM TEMPOSU 】 -->
+      <div class="grid grid-cols-2 gap-2.5">
+        <!-- Birim Maliyet -->
         <div class="custom-card p-3.5 shadow relative overflow-hidden group hover:border-emerald-500/50 transition-colors">
           <div class="flex justify-between items-start">
             <span class="text-[9px] font-extrabold custom-muted uppercase tracking-wider">BİRİM MALİYET</span>
@@ -417,79 +386,62 @@
           <p id="statTotalDistance" class="text-[10px] custom-muted mt-1 font-semibold">Mesafe: 0 km</p>
         </div>
 
+        <!-- Kullanım Temposu -->
+        <div class="custom-card p-3.5 shadow relative overflow-hidden group hover:border-emerald-500/50 transition-colors">
+          <div class="flex justify-between items-start">
+            <span class="text-[9px] font-extrabold text-emerald-500 uppercase tracking-wider">KULLANIM TEMPOSU</span>
+            <span class="w-6 h-6 rounded-lg theme-badge-green flex items-center justify-center text-[11px] shadow-sm font-bold">🚀</span>
+          </div>
+          <div class="mt-1.5">
+            <span id="statUsagePaceVal" class="text-xl font-black text-emerald-500 dark:text-emerald-400 tracking-tight">-- km/ay</span>
+          </div>
+          <p id="statUsageProjDesc" class="text-[10px] custom-muted mt-1 font-semibold leading-tight">Yıl sonu projeksiyonu</p>
+        </div>
+      </div>
+
+      <!-- 【 BÖLÜM 3: FİNANS & CÜZDAN (BİRLEŞTİRİLMİŞ) 】 -->
+      <div class="grid grid-cols-2 gap-2.5">
+        <!-- Yakıt Gideri -->
         <div onclick="openCustomFuelFilterModal()" class="custom-card p-3.5 shadow relative overflow-hidden group hover:border-amber-500/50 transition-all cursor-pointer">
           <div class="flex justify-between items-start">
-            <div class="flex items-center gap-1.5">
+            <div class="flex items-center gap-1">
               <span class="text-[9px] font-extrabold custom-muted uppercase tracking-wider">YAKIT GİDERİ</span>
-              <span class="text-[8px] theme-badge-amber font-black px-1.5 py-0.5 rounded shadow-sm">Filtrele 🔍</span>
+              <span class="text-[7px] theme-badge-amber font-black px-1 py-0.5 rounded shadow-sm">Filtre</span>
             </div>
             <span class="w-6 h-6 rounded-lg theme-badge-amber flex items-center justify-center text-[11px] shadow-sm font-bold">⛽</span>
           </div>
           <div class="mt-1.5">
-            <span id="statFuelExpense" class="text-2xl font-black text-amber-600 dark:text-amber-400 tracking-tight">₺0</span>
+            <span id="statFuelExpense" class="text-xl font-black text-amber-600 dark:text-amber-400 tracking-tight">₺0</span>
           </div>
-          <p id="statFuelVolume" class="text-[10px] custom-muted mt-1 font-semibold">Hacim: 0.0 L</p>
+          <p id="statFuelVolume" class="text-[10px] custom-muted mt-1 font-semibold">Toplam Hacim: 0.0 L</p>
         </div>
 
+        <!-- Toplam Araç Gideri (Sabit ve Değişken Alt Detaylı) -->
         <div class="custom-card p-3.5 shadow relative overflow-hidden group hover:border-pink-500/50 transition-colors">
           <div class="flex justify-between items-start">
-            <span class="text-[9px] font-extrabold custom-muted uppercase tracking-wider">TOPLAM GİDERLER</span>
+            <span class="text-[9px] font-extrabold custom-muted uppercase tracking-wider">TOPLAM ARAÇ GİDERİ</span>
             <span class="w-6 h-6 rounded-lg theme-badge-purple flex items-center justify-center text-[11px] shadow-sm font-bold">$</span>
           </div>
           <div class="mt-1.5">
-            <span id="statTotalOwnership" class="text-2xl font-black text-pink-600 dark:text-pink-400 tracking-tight">₺0</span>
+            <span id="statTotalOwnership" class="text-xl font-black text-pink-600 dark:text-pink-400 tracking-tight">₺0</span>
           </div>
-          <p id="statFixedExpense" class="text-[10px] custom-muted mt-1 font-semibold">Yakıt + Servis + Sabit</p>
-        </div>
-      </div>
-		
-		
-		
-      <!-- YOL BİLGİSAYARI SAPMA VE KULLANIM TEMPOSU KARTLARI -->
-      <div class="grid grid-cols-2 gap-2.5">
-        <div class="custom-card p-3 shadow border-blue-900/30">
-          <div class="flex justify-between items-start">
-            <span class="text-[9px] font-extrabold text-blue-500 uppercase tracking-wider">YOL BİLG. FARKI</span>
-            <span class="text-xs">📊</span>
+          <div class="mt-1 space-y-0.5 text-[9px] font-semibold">
+            <div id="statFixedBreakdown" class="text-blue-500 truncate">🏛 Sabit: ₺0 (%0)</div>
+            <div id="statVariableBreakdown" class="text-amber-500 truncate">🔧 Değişken: ₺0 (%0)</div>
           </div>
-          <div class="mt-1">
-            <span id="statDashBiasVal" class="text-lg font-black text-blue-400 tracking-tight">--</span>
-          </div>
-          <p id="statDashBiasDesc" class="text-[9px] custom-muted mt-0.5 font-semibold leading-tight">Yol bilgisayarı sapması</p>
-        </div>
-
-        <div class="custom-card p-3 shadow border-emerald-900/30">
-          <div class="flex justify-between items-start">
-            <span class="text-[9px] font-extrabold text-emerald-500 uppercase tracking-wider">KULLANIM TEMPOSU</span>
-            <span class="text-xs">🚀</span>
-          </div>
-          <div class="mt-1">
-            <span id="statUsagePaceVal" class="text-lg font-black text-emerald-400 tracking-tight">-- km/ay</span>
-          </div>
-          <p id="statUsageProjDesc" class="text-[9px] custom-muted mt-0.5 font-semibold leading-tight">Yıl sonu projeksiyonu</p>
         </div>
       </div>
 
-      <div class="custom-card p-3.5 shadow flex justify-between items-center text-xs">
-        <div>
-          <span class="text-[9px] font-black uppercase tracking-wider text-blue-600 dark:text-blue-400">YILLIK SABİT GİDER</span>
-          <div id="statFixedExpenseVal" class="text-sm font-black mt-1">₺0</div>
-          <span class="text-[9px] custom-muted font-medium">MTV, Sigorta, Kasko, Muayene</span>
-        </div>
-        <div class="text-right">
-          <span class="text-[9px] font-black uppercase tracking-wider text-amber-600 dark:text-amber-400">DEĞİŞKEN GİDER</span>
-          <div id="statVariableExpense" class="text-sm font-black mt-1">₺0</div>
-          <span class="text-[9px] custom-muted font-medium">Yakıt, Bakım, Lastik</span>
-        </div>
-      </div>
-
+      <!-- 【 BÖLÜM 4: ALT AKORDİYONLAR (BAĞIMSIZ KARTLAR) 】 -->
+      
+      <!-- 1. Akordiyon: Aylık Grafikler -->
       <div class="custom-card overflow-hidden shadow">
         <button onclick="toggleChartsAccordion()" class="w-full p-3.5 flex justify-between items-center text-left hover:bg-slate-800/10 transition-all">
           <div class="flex items-center gap-2.5">
             <span class="text-lg text-cyan-500">📈</span>
             <div>
               <h4 class="text-xs font-black">Aylık Yol & Harcama Grafikleri</h4>
-              <p class="text-[10px] custom-muted font-semibold">Grafiklere tıklayarak tam ekran inceleyin</p>
+              <p class="text-[10px] custom-muted font-semibold">Aylık ve günlük trend çubukları</p>
             </div>
           </div>
           <span id="chartAccordionIcon" class="text-[10px] custom-muted font-bold px-2.5 py-1 rounded-lg custom-card border">▼ Göster</span>
@@ -530,6 +482,75 @@
               <span class="text-[9px] font-bold px-2 py-0.5 rounded-md theme-badge-cyan">Birim</span>
             </div>
             <div class="h-32 w-full pointer-events-none"><canvas id="priceTrendCanvas"></canvas></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Akordiyon: Gelişmiş Araçlar & Yılın Karnesi -->
+      <div class="custom-card overflow-hidden shadow">
+        <button onclick="toggleAdvToolsAccordion()" class="w-full p-3.5 flex justify-between items-center text-left hover:bg-slate-800/10 transition-all">
+          <div class="flex items-center gap-2.5">
+            <span class="text-lg text-emerald-500">🚀</span>
+            <div>
+              <h4 class="text-xs font-black">Gelişmiş Araçlar & Yılın Karnesi</h4>
+              <p class="text-[10px] custom-muted font-semibold">Karne, Maliyet Simülatörü ve Trip Modu</p>
+            </div>
+          </div>
+          <span id="advToolsAccordionIcon" class="text-[10px] custom-muted font-bold px-2.5 py-1 rounded-lg custom-card border">▼ Göster</span>
+        </button>
+
+        <div id="advToolsAccordionBody" class="hidden p-3.5 pt-3 space-y-3 border-t border-slate-700/40">
+          <!-- YILIN EN VERİMLİ / EN MASRAFLI AYI SKOR KARTI -->
+          <div id="annualScoreCard" class="grid grid-cols-2 gap-2 text-xs">
+            <div class="p-2.5 rounded-xl theme-sub-box border border-emerald-500/30">
+              <span class="text-[9px] text-emerald-500 font-black block uppercase">🏆 En Ekonomik Ay</span>
+              <b id="bestMonthScore" class="text-xs font-black text-emerald-400 mt-0.5 block">--</b>
+              <span id="bestMonthDetail" class="text-[9px] custom-muted font-bold">Hesaplanıyor...</span>
+            </div>
+            <div class="p-2.5 rounded-xl theme-sub-box border border-rose-500/30">
+              <span class="text-[9px] text-rose-500 font-black block uppercase">⚠️ En Yüksek Harcama</span>
+              <b id="highestMonthScore" class="text-xs font-black text-rose-400 mt-0.5 block">--</b>
+              <span id="highestMonthDetail" class="text-[9px] custom-muted font-bold">Hesaplanıyor...</span>
+            </div>
+          </div>
+
+          <!-- SEYAHAT & ROTA MALİYET SİMÜLATÖRÜ -->
+          <div class="p-3 rounded-xl theme-sub-box border border-cyan-500/30 space-y-2">
+            <div class="flex justify-between items-center">
+              <div class="flex items-center gap-1.5">
+                <span class="text-base">🧭</span>
+                <h4 class="text-xs font-black text-cyan-600 dark:text-cyan-400">Seyahat Maliyet Simülatörü</h4>
+              </div>
+              <span class="text-[9px] theme-badge-cyan font-black px-2 py-0.5 rounded">Hızlı Hesap</span>
+            </div>
+            <div class="flex gap-2 items-center">
+              <input type="number" id="simDistanceInput" oninput="calculateTripEstimateLive()" placeholder="Gidilecek Mesafe (km)" class="flex-1 custom-input border p-2 rounded-xl text-xs font-black outline-none shadow-inner" />
+              <button onclick="calculateTripEstimateLive()" class="px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-black shadow">Hesapla</button>
+            </div>
+            <div id="simResultBox" class="p-2.5 rounded-xl theme-sub-box border border-cyan-500/20 text-xs hidden flex justify-between items-center">
+              <div>
+                <span class="text-[9px] custom-muted block font-semibold">Tahmini Tüketim:</span>
+                <b id="simFuelLit" class="text-xs font-black text-cyan-400">0.0 L</b>
+              </div>
+              <div class="text-right">
+                <span class="text-[9px] custom-muted block font-semibold">Tahmini Yakıt Tutarı:</span>
+                <b id="simFuelCost" class="text-sm font-black text-emerald-400">₺0</b>
+              </div>
+            </div>
+          </div>
+
+          <!-- CARVERI TRIP / GPS MODU KÖPRÜSÜ -->
+          <div class="p-3 rounded-xl theme-sub-box border border-cyan-500/40 flex justify-between items-center bg-gradient-to-r from-cyan-950/20 to-blue-950/10">
+            <div class="flex items-center gap-2.5">
+              <span class="text-xl">🧭</span>
+              <div>
+                <h4 class="text-xs font-black text-cyan-600 dark:text-cyan-400">Canlı Yol & GPS Takometre</h4>
+                <p class="text-[10px] custom-muted font-medium">Hız, trip mesafesi ve anlık TL harcama sayacı</p>
+              </div>
+            </div>
+            <a href="./trip/index.html" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white text-[11px] font-black rounded-xl shadow whitespace-nowrap transition-transform active:scale-95 flex items-center gap-1">
+              <span>Aç</span> <span>▶</span>
+            </a>
           </div>
         </div>
       </div>
@@ -662,17 +683,19 @@
     <!-- 4. SEKME: BAKIM & LASTİK -->
     <div id="tabTires" class="space-y-3.5 hidden">
       <div class="custom-card p-3.5 shadow">
+        <!-- İnceleme Sekmeleri -->
         <div class="flex gap-1.5 p-1 bg-slate-800/10 rounded-xl mb-3">
-          <button onclick="switchTireSeason('summer')" id="btnTireSummer" class="flex-1 py-2 text-[11px] font-black rounded-lg transition-all theme-badge-amber shadow-sm">☀ Yazlık Set</button>
-          <button onclick="switchTireSeason('winter')" id="btnTireWinter" class="flex-1 py-2 text-[11px] font-black rounded-lg transition-all custom-muted hover:text-white">❄️ Kışlık Set</button>
+          <button type="button" onclick="switchTireSeason('summer')" id="btnTireSummer" class="flex-1 py-2 text-[11px] font-black rounded-lg transition-all theme-badge-amber shadow-sm">☀ Yazlık Set</button>
+          <button type="button" onclick="switchTireSeason('winter')" id="btnTireWinter" class="flex-1 py-2 text-[11px] font-black rounded-lg transition-all custom-muted hover:text-white">❄️ Kışlık Set</button>
         </div>
 
+        <!-- Başlık ve Durum Rozeti -->
         <div class="flex justify-between items-center mb-2.5">
           <div>
             <h4 id="tireSetTitle" class="text-xs font-black flex items-center gap-1.5"><span>☀</span> Yazlık Lastik Seti (4 Tekerlek)</h4>
-            <p id="tireSeasonStatusBadge" class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400"></p>
+            <div id="tireSeasonStatusBadge" class="text-[10px] font-black mt-0.5"></div>
           </div>
-          <button onclick="openTireMountModal()" id="btnMakeActiveSet" class="text-[10px] font-black px-2.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white shadow-md">Seti Tak / Değiştir</button>
+          <button type="button" onclick="openTireMountModal()" id="btnMakeActiveSet" class="text-[10px] font-black px-2.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white shadow-md transition-all active:scale-95">Seti Tak / Değiştir</button>
         </div>
 
         <div class="p-3 theme-sub-box rounded-xl mb-3 space-y-1.5 text-[11px]">
@@ -1116,7 +1139,7 @@
           <label class="custom-muted text-[10px] font-black">Ek Parçalar</label>
           <input type="text" id="eExtraParts" class="w-full custom-input border p-2.5 rounded-xl outline-none text-[11px] font-medium" />
         </div>
-        <div class="grid grid-cols-2 gap-2.5">
+        <div class="grid grid-cols-3 gap-2">
           <div>
             <div class="flex justify-between items-center">
               <label class="custom-muted text-[10px] font-bold">Tutar (₺)</label>
@@ -1127,6 +1150,19 @@
           <div>
             <label class="custom-muted text-[10px] font-bold">Kart/Ödeme</label>
             <select id="ePaymentMethod" class="w-full mt-1 custom-input border p-2.5 rounded-xl outline-none font-black text-cyan-600 dark:text-cyan-400 payment-select-target"></select>
+          </div>
+          <div>
+            <label class="custom-muted text-[10px] font-bold">Taksit</label>
+            <select id="eInstallments" class="w-full mt-1 custom-input border p-2.5 rounded-xl outline-none font-black text-amber-600 dark:text-amber-400">
+              <option value="1">Tek Çekim</option>
+              <option value="2">2 Taksit</option>
+              <option value="3">3 Taksit</option>
+              <option value="4">4 Taksit</option>
+              <option value="6">6 Taksit</option>
+              <option value="8">8 Taksit</option>
+              <option value="9">9 Taksit</option>
+              <option value="12">12 Taksit</option>
+            </select>
           </div>
         </div>
         <div>
@@ -1254,14 +1290,60 @@
         <button type="button" onclick="closeModal('tireMountModal')" class="custom-muted text-lg font-black">✕</button>
       </div>
       <form onsubmit="saveTireMount(event)" class="space-y-3 text-xs flex-1 overflow-y-auto history-scroll pr-1">
-        <div><label class="custom-muted text-[10px] font-bold">Set Durumu</label><select id="tmType" class="w-full mt-1 custom-input border p-2.5 rounded-xl outline-none font-black"><option value="mevcut">Mevcut Seti Tak</option><option value="sifir">Yepyeni Set Tak</option></select></div>
-        <div class="grid grid-cols-2 gap-2.5">
-          <div><label class="custom-muted text-[10px] font-bold">Zaman</label><input type="datetime-local" id="tmDate" required class="w-full mt-1 custom-input border p-2.5 rounded-xl outline-none" /></div>
-          <div><label class="custom-muted text-[10px] font-bold">Takıldığı KM</label><input type="number" id="tmKm" required class="w-full mt-1 custom-input border p-2.5 rounded-xl outline-none" /></div>
+       <input type="hidden" id="tmTargetSet" value="" />
+        <div>
+          <label class="custom-muted text-[10px] font-bold">Set Durumu</label>
+          <select id="tmType" onchange="toggleTireMountPriceFields()" class="w-full mt-1 custom-input border p-2.5 rounded-xl outline-none font-black">
+            <option value="mevcut">Mevcut Seti Tak (Masrafsız)</option>
+            <option value="sifir">Yepyeni Set Tak (Satın Alındı)</option>
+          </select>
         </div>
+
+        <div class="grid grid-cols-2 gap-2.5">
+          <div>
+            <label class="custom-muted text-[10px] font-bold">Zaman</label>
+            <input type="datetime-local" id="tmDate" required class="w-full mt-1 custom-input border p-2.5 rounded-xl outline-none font-medium" />
+          </div>
+          <div>
+            <label class="custom-muted text-[10px] font-bold">Takıldığı KM</label>
+            <input type="number" id="tmKm" required class="w-full mt-1 custom-input border p-2.5 rounded-xl outline-none font-black text-cyan-600 dark:text-cyan-400" />
+          </div>
+        </div>
+
+        <!-- SIFIR YENİ SET SEÇİLDİĞİNDE AÇILACAK FİNANSAL ALANLAR -->
+        <div id="tmNewSetFields" class="hidden p-3 rounded-xl theme-sub-box border border-amber-500/30 space-y-2.5">
+          <div class="flex justify-between items-center">
+            <span class="text-[10px] font-black text-amber-500">💰 Yeni Lastik Takımı Masrafı</span>
+            <span class="text-[8px] theme-badge-amber px-1.5 py-0.5 rounded font-bold">Giderlere İşlenir</span>
+          </div>
+          <div>
+            <label class="custom-muted text-[10px] font-bold">Toplam Fiyat (₺)</label>
+            <input type="number" step="0.01" id="tmAmount" placeholder="örn: 14000" class="w-full mt-1 custom-input border p-2.5 rounded-xl outline-none font-black text-emerald-600 dark:text-emerald-400 text-sm" />
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="custom-muted text-[10px] font-bold">Kart / Ödeme</label>
+              <select id="tmPaymentMethod" class="w-full mt-1 custom-input border p-2 rounded-xl outline-none font-black text-cyan-600 dark:text-cyan-400 payment-select-target"></select>
+            </div>
+            <div>
+              <label class="custom-muted text-[10px] font-bold">Taksit</label>
+              <select id="tmInstallments" class="w-full mt-1 custom-input border p-2 rounded-xl outline-none font-black text-amber-600 dark:text-amber-400">
+                <option value="1">Tek Çekim (Peşin)</option>
+                <option value="2">2 Taksit</option>
+                <option value="3">3 Taksit</option>
+                <option value="4">4 Taksit</option>
+                <option value="6">6 Taksit</option>
+                <option value="8">8 Taksit</option>
+                <option value="9">9 Taksit</option>
+                <option value="12">12 Taksit</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
         <div class="flex gap-2.5 pt-2 shrink-0 border-t border-slate-700/40">
-          <button type="button" onclick="closeModal('tireMountModal')" class="flex-1 py-2.5 custom-card font-bold rounded-xl">Vazgeç</button>
-          <button type="submit" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-black shadow-md">Onayla</button>
+          <button type="button" onclick="closeModal('tireMountModal')" class="flex-1 py-2.5 custom-card font-bold rounded-xl text-xs">Vazgeç</button>
+          <button type="submit" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-black text-xs shadow-md">Onayla ve Kaydet</button>
         </div>
       </form>
     </div>
@@ -3213,31 +3295,76 @@
     function persistPaymentMethods() { localStorage.setItem(STORAGE_PREFIX + "payment_methods", JSON.stringify(window.customPaymentMethods)); localStorage.setItem(STORAGE_PREFIX + "card_rewards", JSON.stringify(window.cardRewards)); populatePaymentSelects(); renderPaymentBreakdown(); }
 
     function openExpenseModal() {
-      document.getElementById("expForm").reset(); document.getElementById("eId").value = ""; document.getElementById("eDocId").value = ""; document.getElementById("eDocPreviewBox").classList.add("hidden");
-      document.getElementById("eDate").value = getNowLocalISO(); document.getElementById("eIncludeInExpert").checked = true; populatePaymentSelects(); toggleExpenseFields(); openModalDirectly("expenseModal");
+      document.getElementById("expForm").reset(); 
+      document.getElementById("eId").value = ""; 
+      document.getElementById("eDocId").value = ""; 
+      document.getElementById("eDocPreviewBox").classList.add("hidden");
+      document.getElementById("eDate").value = getNowLocalISO(); 
+      document.getElementById("eIncludeInExpert").checked = true;
+      if (document.getElementById("eInstallments")) document.getElementById("eInstallments").value = "1";
+      populatePaymentSelects(); 
+      toggleExpenseFields(); 
+      openModalDirectly("expenseModal");
     }
 
     async function editExpense(id) {
-      const exp = window.expenses.find(x => String(x.id) === String(id)); if (!exp) return; populatePaymentSelects();
-      document.getElementById("eId").value = exp.id; document.getElementById("eDate").value = exp.date; document.getElementById("eType").value = exp.type; document.getElementById("eAmount").value = exp.amount !== undefined ? exp.amount : "";
-      document.getElementById("ePaymentMethod").value = exp.paymentMethod || window.customPaymentMethods[0]; document.getElementById("eDesc").value = exp.desc || "";
-      document.getElementById("eMaintenanceKm").value = exp.maintenanceKm || ""; document.getElementById("eExtraParts").value = exp.extraParts || ""; document.getElementById("eIncludeInExpert").checked = exp.includeInExpert !== false;
+      const exp = window.expenses.find(x => String(x.id) === String(id)); 
+      if (!exp) return; 
+      populatePaymentSelects();
+      document.getElementById("eId").value = exp.id; 
+      document.getElementById("eDate").value = exp.date; 
+      document.getElementById("eType").value = exp.type; 
+      document.getElementById("eAmount").value = exp.amount !== undefined ? exp.amount : "";
+      document.getElementById("ePaymentMethod").value = exp.paymentMethod || window.customPaymentMethods[0]; 
+      document.getElementById("eDesc").value = exp.desc || "";
+      document.getElementById("eMaintenanceKm").value = exp.maintenanceKm || ""; 
+      document.getElementById("eExtraParts").value = exp.extraParts || ""; 
+      document.getElementById("eIncludeInExpert").checked = exp.includeInExpert !== false;
+      if (document.getElementById("eInstallments")) {
+        document.getElementById("eInstallments").value = exp.installments || "1";
+      }
       document.getElementById("eDocId").value = exp.docId || "";
       if (exp.docId) {
         const uri = await getDocFromDB(exp.docId);
-        if (uri && !uri.startsWith("data:application/pdf")) { document.getElementById("eDocThumbnail").src = uri; document.getElementById("eDocThumbnail").classList.remove("hidden"); }
-        document.getElementById("eDocPreviewBox").classList.remove("hidden"); document.getElementById("eDocPreviewBox").style.display="flex";
-      } else { document.getElementById("eDocPreviewBox").classList.add("hidden"); }
-      toggleExpenseFields(); openModalDirectly("expenseModal");
+        if (uri && !uri.startsWith("data:application/pdf")) { 
+          document.getElementById("eDocThumbnail").src = uri; 
+          document.getElementById("eDocThumbnail").classList.remove("hidden"); 
+        }
+        document.getElementById("eDocPreviewBox").classList.remove("hidden"); 
+        document.getElementById("eDocPreviewBox").style.display="flex";
+      } else { 
+        document.getElementById("eDocPreviewBox").classList.add("hidden"); 
+      }
+      toggleExpenseFields(); 
+      openModalDirectly("expenseModal");
     }
 
     function saveExpense(e) {
       e.preventDefault();
-      const id = document.getElementById("eId").value || ("exp_" + Date.now()); const typeVal = document.getElementById("eType").value; const dateVal = document.getElementById("eDate").value;
-      const record = { id, date: dateVal, type: typeVal, maintenanceKm: (typeVal === "Periyodik Bakım" || typeVal === "Parça Değişimi & Onarım") ? parseFloat(document.getElementById("eMaintenanceKm").value) || null : null, extraParts: typeVal === "Periyodik Bakım" ? document.getElementById("eExtraParts").value.trim() : null, includeInExpert: document.getElementById("eIncludeInExpert").checked, amount: parseFloat(document.getElementById("eAmount").value) || 0, paymentMethod: document.getElementById("ePaymentMethod").value, desc: document.getElementById("eDesc").value.trim(), docId: document.getElementById("eDocId").value || null };
+      const id = document.getElementById("eId").value || ("exp_" + Date.now()); 
+      const typeVal = document.getElementById("eType").value; 
+      const dateVal = document.getElementById("eDate").value;
+      const instVal = parseInt(document.getElementById("eInstallments")?.value, 10) || 1;
+      
+      const record = { 
+        id, 
+        date: dateVal, 
+        type: typeVal, 
+        maintenanceKm: (typeVal === "Periyodik Bakım" || typeVal === "Parça Değişimi & Onarım") ? parseFloat(document.getElementById("eMaintenanceKm").value) || null : null, 
+        extraParts: typeVal === "Periyodik Bakım" ? document.getElementById("eExtraParts").value.trim() : null, 
+        includeInExpert: document.getElementById("eIncludeInExpert").checked, 
+        amount: parseFloat(document.getElementById("eAmount").value) || 0, 
+        paymentMethod: document.getElementById("ePaymentMethod").value,
+        installments: instVal,
+        desc: document.getElementById("eDesc").value.trim(), 
+        docId: document.getElementById("eDocId").value || null 
+      };
       const idx = window.expenses.findIndex(x => String(x.id) === String(id));
       if (idx > -1) window.expenses[idx] = record; else window.expenses.push(record);
-      persistAllData(); closeModal("expenseModal"); populateYearSelector(); renderAll();
+      persistAllData(); 
+      closeModal("expenseModal"); 
+      populateYearSelector(); 
+      renderAll();
     }
 
     function deleteExpense(id) { if (confirm("Bu gideri silmek istediğinize emin misiniz?")) { window.expenses = window.expenses.filter(x => String(x.id) !== String(id)); persistAllData(); populateYearSelector(); renderAll(); } }
@@ -3276,10 +3403,46 @@
         const card = document.createElement("div"); card.className = "custom-card p-3.5 shadow text-xs transition-all";
         const dateFormatted = formatDateTimeLabel(item.date); const isFree = (item.amount === 0 || item.amount === "0");
         const isExp = expandedExpenses.has(item.id);
-        card.innerHTML = `<div onclick="toggleExpenseExpansion('${item.id}')" class="cursor-pointer"><div class="flex justify-between items-center"><div><div class="flex items-center gap-1.5 mb-1 flex-wrap"><span class="font-black text-pink-600 dark:text-pink-400 text-xs">${item.type}</span><span class="theme-badge-purple px-2 py-0.5 rounded-md text-[10px] font-bold">${item.paymentMethod || 'Nakit'}</span>${isFree ? `<span class="theme-badge-green text-[9px] font-black px-2 py-0.5 rounded-md">🛡️ Garanti (0 ₺)</span>` : ''}</div><div class="custom-muted text-[10px] font-semibold">${dateFormatted} ${item.maintenanceKm ? '• ' + item.maintenanceKm.toLocaleString('tr-TR') + ' KM' : ''} ${item.desc ? '• ' + item.desc : ''}</div></div><div class="text-right"><span class="font-black text-sm ${isFree ? 'text-emerald-600 dark:text-emerald-400' : ''}">${isFree ? '0 ₺' : '₺' + parseFloat(item.amount).toLocaleString('tr-TR')}</span><div class="text-[10px] custom-muted mt-1 font-bold">${isExp ? '▲ Kapat' : '▼ Detay'}</div></div></div></div>${isExp ? `<div class="pt-2.5 mt-2.5 border-t border-slate-700/40 space-y-2.5"><div class="flex justify-between items-center pt-1">${item.docId ? `<button onclick="viewDocumentById('${item.docId}')" class="text-cyan-600 dark:text-cyan-400 font-black text-[11px] flex items-center gap-1"><span>📄</span> Belgeyi Görüntüle</button>` : '<span></span>'}<div class="flex gap-3 font-bold text-[11px]"><button onclick="editExpense('${item.id}')" class="text-blue-600 hover:underline">Düzenle</button><button onclick="deleteExpense('${item.id}')" class="text-rose-500 hover:underline">Sil</button></div></div></div>` : ''}`;
+
+        // Taksit Rozeti
+        const instCount = parseInt(item.installments, 10) || 1;
+        const instBadge = instCount > 1 
+          ? `<span class="theme-badge-amber px-2 py-0.5 rounded-md text-[9px] font-black">${instCount} Taksit (Aylık ₺${Math.round(item.amount / instCount).toLocaleString('tr-TR')})</span>` 
+          : '';
+
+        card.innerHTML = `
+          <div onclick="toggleExpenseExpansion('${item.id}')" class="cursor-pointer">
+            <div class="flex justify-between items-center">
+              <div>
+                <div class="flex items-center gap-1.5 mb-1 flex-wrap">
+                  <span class="font-black text-pink-600 dark:text-pink-400 text-xs">${item.type}</span>
+                  <span class="theme-badge-purple px-2 py-0.5 rounded-md text-[10px] font-bold">${item.paymentMethod || 'Nakit'}</span>
+                  ${instBadge}
+                  ${isFree ? `<span class="theme-badge-green text-[9px] font-black px-2 py-0.5 rounded-md">🛡️ Garanti (0 ₺)</span>` : ''}
+                </div>
+                <div class="custom-muted text-[10px] font-semibold">${dateFormatted} ${item.maintenanceKm ? '• ' + item.maintenanceKm.toLocaleString('tr-TR') + ' KM' : ''} ${item.desc ? '• ' + item.desc : ''}</div>
+              </div>
+              <div class="text-right">
+                <span class="font-black text-sm ${isFree ? 'text-emerald-600 dark:text-emerald-400' : ''}">${isFree ? '0 ₺' : '₺' + parseFloat(item.amount).toLocaleString('tr-TR')}</span>
+                <div class="text-[10px] custom-muted mt-1 font-bold">${isExp ? '▲ Kapat' : '▼ Detay'}</div>
+              </div>
+            </div>
+          </div>
+          ${isExp ? `
+            <div class="pt-2.5 mt-2.5 border-t border-slate-700/40 space-y-2.5">
+              <div class="flex justify-between items-center pt-1">
+                ${item.docId ? `<button onclick="viewDocumentById('${item.docId}')" class="text-cyan-600 dark:text-cyan-400 font-black text-[11px] flex items-center gap-1"><span>📄</span> Belgeyi Görüntüle</button>` : '<span></span>'}
+                <div class="flex gap-3 font-bold text-[11px]">
+                  <button onclick="editExpense('${item.id}')" class="text-blue-600 hover:underline">Düzenle</button>
+                  <button onclick="deleteExpense('${item.id}')" class="text-rose-500 hover:underline">Sil</button>
+                </div>
+              </div>
+            </div>` : ''}
+        `;
         container.appendChild(card);
       });
-      renderPaymentBreakdown(); renderMaintenancePartsList();
+      renderPaymentBreakdown(); 
+      renderMaintenancePartsList();
     }
 
     function renderMaintenancePartsList() {
@@ -3325,7 +3488,12 @@
       const rewards = (window.cardRewards[pm] || []); let totalReward = rewards.reduce((sum, r) => sum + r.amount, 0);
       document.getElementById("stmtTotalSpent").innerText = `₺${Math.round(totalSpent).toLocaleString('tr-TR')}`; document.getElementById("stmtTotalReward").innerText = `₺${Math.round(totalReward).toLocaleString('tr-TR')}`;
       const expListEl = document.getElementById("stmtExpenseList"); expListEl.innerHTML = "";
-      [...activeF.map(f => ({ date: f.date, desc: `${f.station} (${f.liters} L)`, amount: f.total })), ...activeE.map(e => ({ date: e.date, desc: `${e.type} ${e.desc ? '- ' + e.desc : ''}`, amount: e.amount }))]
+      [...activeF.map(f => ({ date: f.date, desc: `${f.station} (${f.liters} L)`, amount: f.total })), 
+       ...activeE.map(e => ({ 
+         date: e.date, 
+         desc: `${e.type} ${e.desc ? '- ' + e.desc : ''} ${(e.installments && e.installments > 1) ? `[${e.installments} Taksit • Aylık ₺${Math.round(e.amount / e.installments).toLocaleString('tr-TR')}]` : ''}`, 
+         amount: e.amount 
+       }))]
        .sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(item => {
          expListEl.innerHTML += `<div class="flex justify-between items-center p-2 rounded-lg theme-sub-box text-[10px]"><div><span class="font-bold">${item.desc}</span><span class="custom-muted block text-[9px]">${formatDateTimeLabel(item.date)}</span></div><span class="font-black">₺${parseFloat(item.amount).toLocaleString('tr-TR')}</span></div>`;
        });
@@ -3406,39 +3574,217 @@ function saveRewardEntry(e) {
       if (icon) icon.innerText = isHidden ? "▼" : "▲";
     }
 
-    // --- LASTİK MODÜLÜ ---
-    function switchTireSeason(season) { window.tireData.activeSet = season; persistAllData(); renderTiresTab(); }
-    function renderTiresTab() {
-      const activeSet = window.tireData.activeSet || "summer"; const isSummer = activeSet === "summer";
-      document.getElementById("btnTireSummer").className = isSummer ? "flex-1 py-2 text-[11px] font-black rounded-lg transition-all theme-badge-amber shadow-sm" : "flex-1 py-2 text-[11px] font-black rounded-lg transition-all custom-muted hover:text-white";
-      document.getElementById("btnTireWinter").className = !isSummer ? "flex-1 py-2 text-[11px] font-black rounded-lg transition-all theme-badge-blue shadow-sm" : "flex-1 py-2 text-[11px] font-black rounded-lg transition-all custom-muted hover:text-white";
-      const setObj = window.tireData[activeSet]; document.getElementById("tireSetTitle").innerHTML = isSummer ? "<span>☀</span> Yazlık Lastik Seti (4 Tekerlek)" : "<span>❄️</span> Kışlık Lastik Seti (4 Tekerlek)";
-      document.getElementById("tireMountedDate").innerText = setObj.mountedDate ? formatDateTimeLabel(setObj.mountedDate) : "--"; document.getElementById("tireMountedKm").innerText = setObj.mountedKm ? `${setObj.mountedKm.toLocaleString('tr-TR')} KM` : "--";
-      const liveKm = getLatestVehicleKm(); const dDist = (setObj.mountedKm !== null && setObj.mountedKm !== undefined && liveKm >= setObj.mountedKm) ? liveKm - setObj.mountedKm : 0;
-      document.getElementById("tireSeasonDistance").innerText = `${dDist.toLocaleString('tr-TR')} km`;
-      const taAlert = document.getElementById("tireRotationAlert");
-      taAlert.classList.toggle("hidden", dDist < 10000); if(dDist >= 10000) taAlert.style.display="block"; else taAlert.style.display="none";
-      ["sol_on", "sag_on", "sol_arka", "sag_arka"].forEach(pos => { const el = document.getElementById(`stat_${pos}_status`); if (el) el.innerText = setObj[pos].status || "Sorunsuz"; });
+    // --- GÜNCELLENMİŞ LASTİK MODÜLÜ (GÖRÜNTÜLEME VE FİZİKİ SET AYRIMI) ---
+    // Varsayılan olarak araçta takılı olan seti göster
+    window.viewedTireSet = window.tireData ? (window.tireData.activeSet || "summer") : "summer";
+
+    // Sekmeler arasında geçiş: SADECE EKRANI DEĞİŞTİRİR, ARABANIN TAKILI LASTİĞİNİ DEĞİŞTİRMEZ!
+    function switchTireSeason(season) {
+      window.viewedTireSet = season;
+      renderTiresTab();
     }
 
-    function openTireMountModal() { document.getElementById("tmDate").value = getNowLocalISO(); document.getElementById("tmKm").value = getLatestVehicleKm() || ""; openModalDirectly("tireMountModal"); }
-    function saveTireMount(e) { e.preventDefault(); const activeSet = window.tireData.activeSet || "summer"; window.tireData[activeSet].mountedDate = document.getElementById("tmDate").value; window.tireData[activeSet].mountedKm = parseFloat(document.getElementById("tmKm").value) || 0; persistAllData(); closeModal("tireMountModal"); renderTiresTab(); }
-    
-    let activeTirePos = "sol_on";
+    function renderTiresTab() {
+      const mountedSet = window.tireData.activeSet || "summer"; // Arabada gerçekte takılı olan
+      const viewSet = window.viewedTireSet || mountedSet;       // Ekranda incelediğimiz
+      const isViewingSummer = viewSet === "summer";
+      const isCurrentlyMounted = viewSet === mountedSet;
+
+      // Üst butonların aktiflik durumu
+      document.getElementById("btnTireSummer").className = isViewingSummer 
+        ? "flex-1 py-2 text-[11px] font-black rounded-lg transition-all theme-badge-amber shadow-sm" 
+        : "flex-1 py-2 text-[11px] font-black rounded-lg transition-all custom-muted hover:text-white";
+        
+      document.getElementById("btnTireWinter").className = !isViewingSummer 
+        ? "flex-1 py-2 text-[11px] font-black rounded-lg transition-all theme-badge-blue shadow-sm" 
+        : "flex-1 py-2 text-[11px] font-black rounded-lg transition-all custom-muted hover:text-white";
+
+      // Başlık
+      document.getElementById("tireSetTitle").innerHTML = isViewingSummer 
+        ? "<span>☀</span> Yazlık Lastik Seti (4 Tekerlek)" 
+        : "<span>❄️</span> Kışlık Lastik Seti (4 Tekerlek)";
+
+      // ARACA TAKILI MI / DEPODA MI DURUM ROZETİ VE BUTON DÜZENLEMESİ
+      const statusBadge = document.getElementById("tireSeasonStatusBadge");
+      const actionBtn = document.getElementById("btnMakeActiveSet");
+
+      if (isCurrentlyMounted) {
+        statusBadge.innerHTML = `<span class="inline-flex items-center gap-1 text-emerald-500 font-black"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> 🟢 ARACA TAKILI (AKTİF SET)</span>`;
+        if (actionBtn) {
+          actionBtn.innerText = "Seti Güncelle";
+          actionBtn.className = "text-[10px] font-black px-2.5 py-1.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-white shadow-md";
+        }
+      } else {
+        statusBadge.innerHTML = `<span class="inline-flex items-center gap-1 text-amber-500 dark:text-amber-400 font-bold">⚪ DEPODA / SAKLAMADA</span>`;
+        if (actionBtn) {
+          actionBtn.innerText = `▶ Bu Seti Araca Tak`;
+          actionBtn.className = "text-[10px] font-black px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white shadow-md animate-bounce";
+        }
+      }
+
+      const setObj = window.tireData[viewSet];
+      document.getElementById("tireMountedDate").innerText = setObj.mountedDate ? formatDateTimeLabel(setObj.mountedDate) : "--";
+      document.getElementById("tireMountedKm").innerText = setObj.mountedKm ? `${setObj.mountedKm.toLocaleString('tr-TR')} KM` : "--";
+
+      // Mesafe Sayacı: Yalnızca şu an araçta takılı olan sette canlı ilerler
+      const liveKm = getLatestVehicleKm();
+      const distEl = document.getElementById("tireSeasonDistance");
+      const taAlert = document.getElementById("tireRotationAlert");
+
+      if (isCurrentlyMounted) {
+        const dDist = (setObj.mountedKm !== null && setObj.mountedKm !== undefined && liveKm >= setObj.mountedKm) ? (liveKm - setObj.mountedKm) : 0;
+        distEl.innerText = `${dDist.toLocaleString('tr-TR')} km`;
+        if (taAlert) {
+          taAlert.classList.toggle("hidden", dDist < 10000);
+          taAlert.style.display = dDist >= 10000 ? "block" : "none";
+        }
+      } else {
+        distEl.innerText = `Depoda (Sayaç Durduruldu)`;
+        if (taAlert) {
+          taAlert.classList.add("hidden");
+          taAlert.style.display = "none";
+        }
+      }
+
+      // Tekerleklerin durumlarını ekrana yaz (İncelenen setin tekerlekleri)
+      ["sol_on", "sag_on", "sol_arka", "sag_arka"].forEach(pos => {
+        const el = document.getElementById(`stat_${pos}_status`);
+        if (el) el.innerText = (setObj[pos] && setObj[pos].status) ? setObj[pos].status : "Sorunsuz";
+      });
+    }
+
+    // FİYAT & TAKSİT KUTULARINI AÇIP KAPATAN FONKSİYON (KORUNDU)
+    function toggleTireMountPriceFields() {
+      const isNew = document.getElementById("tmType").value === "sifir";
+      const fBox = document.getElementById("tmNewSetFields");
+      if (fBox) {
+        fBox.classList.toggle("hidden", !isNew);
+        if (isNew) fBox.style.display = "block";
+        else fBox.style.display = "none";
+      }
+    }
+
+    function openTireMountModal() {
+      const targetSet = window.viewedTireSet || "summer";
+      const setNameTr = targetSet === "summer" ? "Yazlık" : "Kışlık";
+      
+      document.getElementById("tmTargetSet").value = targetSet;
+      document.getElementById("tireMountModalTitle").innerText = `🛞 ${setNameTr} Seti Araca Tak`;
+      document.getElementById("tmType").value = "mevcut";
+      document.getElementById("tmDate").value = getNowLocalISO();
+      document.getElementById("tmKm").value = getLatestVehicleKm() || "";
+      document.getElementById("tmAmount").value = "";
+      document.getElementById("tmInstallments").value = "1";
+      
+      populatePaymentSelects();
+      toggleTireMountPriceFields();
+      openModalDirectly("tireMountModal");
+    }
+
+    function saveTireMount(e) {
+      e.preventDefault();
+      const targetSet = document.getElementById("tmTargetSet").value || window.viewedTireSet || "summer";
+      const tmType = document.getElementById("tmType").value;
+      const dateVal = document.getElementById("tmDate").value;
+      const kmVal = parseFloat(document.getElementById("tmKm").value) || 0;
+
+      // 1. ARACIN AKTİF SETİNİ DEĞİŞTİR
+      window.tireData.activeSet = targetSet;
+      window.viewedTireSet = targetSet;
+
+      // 2. Takılma bilgilerini kaydet
+      window.tireData[targetSet].mountedDate = dateVal;
+      window.tireData[targetSet].mountedKm = kmVal;
+
+      // 3. Sıfır set ise lastik durumlarını sıfırla ve gider ekle
+      if (tmType === "sifir") {
+        ["sol_on", "sag_on", "sol_arka", "sag_arka"].forEach(pos => {
+          if (!window.tireData[targetSet][pos]) window.tireData[targetSet][pos] = {};
+          window.tireData[targetSet][pos].status = "Sorunsuz";
+        });
+
+        const amountVal = parseFloat(document.getElementById("tmAmount").value) || 0;
+        const pMethod = document.getElementById("tmPaymentMethod").value || (window.customPaymentMethods ? window.customPaymentMethods[0] : "Nakit");
+        const instVal = parseInt(document.getElementById("tmInstallments").value, 10) || 1;
+
+        if (amountVal > 0) {
+          const setName = targetSet === "summer" ? "Yazlık" : "Kışlık";
+          window.expenses.push({
+            id: "exp_" + Date.now(),
+            date: dateVal,
+            type: "Lastik Tamir / Değişim",
+            amount: amountVal,
+            paymentMethod: pMethod,
+            installments: instVal,
+            desc: `Yeni 4'lü ${setName} Lastik Seti Satın Alındı & Takıldı`,
+            maintenanceKm: kmVal,
+            includeInExpert: true
+          });
+        }
+      }
+
+      persistAllData();
+      closeModal("tireMountModal");
+      renderTiresTab();
+      renderAll();
+      alert(`✅ ${targetSet === 'summer' ? 'Yazlık' : 'Kışlık'} set başarıyla araca takıldı ve aktif set olarak belirlendi!`);
+    }
+
     function openTireActionModal(pos) {
-      activeTirePos = pos; document.getElementById("taPosition").value = pos; document.getElementById("taDate").value = getNowLocalISO(); document.getElementById("taCost").value = ""; document.getElementById("taNote").value = "";
-      const activeSet = window.tireData.activeSet || "summer"; const posObj = window.tireData[activeSet][pos]; const listEl = document.getElementById("tireHistoryList"); listEl.innerHTML = "";
-      if (posObj.history && posObj.history.length > 0) posObj.history.slice().reverse().forEach(h => { listEl.innerHTML += `<div class="p-1.5 rounded theme-sub-box text-[9px] flex justify-between"><span>${h.date.split('T')[0]} - ${h.action}</span><b>${h.cost ? '₺' + h.cost : ''}</b></div>`; });
-      else listEl.innerHTML = `<div class="text-[9px] custom-muted">Geçmiş işlem yok.</div>`;
+      activeTirePos = pos;
+      const currentSet = window.viewedTireSet || "summer";
+      document.getElementById("taPosition").value = pos;
+      document.getElementById("taDate").value = getNowLocalISO();
+      document.getElementById("taCost").value = "";
+      document.getElementById("taNote").value = "";
+      
+      const posObj = window.tireData[currentSet][pos] || { status: "Sorunsuz", history: [] };
+      const listEl = document.getElementById("tireHistoryList");
+      listEl.innerHTML = "";
+      
+      if (posObj.history && posObj.history.length > 0) {
+        posObj.history.slice().reverse().forEach(h => {
+          listEl.innerHTML += `<div class="p-1.5 rounded theme-sub-box text-[9px] flex justify-between"><span>${h.date.split('T')[0]} - ${h.action}</span><b>${h.cost ? '₺' + h.cost : ''}</b></div>`;
+        });
+      } else {
+        listEl.innerHTML = `<div class="text-[9px] custom-muted">Geçmiş işlem yok.</div>`;
+      }
       openModalDirectly("tireActionModal");
     }
 
     function saveTireAction(e) {
-      e.preventDefault(); const activeSet = window.tireData.activeSet || "summer"; const act = document.getElementById("taAction").value; const cost = parseFloat(document.getElementById("taCost").value) || 0; const note = document.getElementById("taNote").value.trim(); const date = document.getElementById("taDate").value;
-      window.tireData[activeSet][activeTirePos].status = act; if (!window.tireData[activeSet][activeTirePos].history) window.tireData[activeSet][activeTirePos].history = [];
-      window.tireData[activeSet][activeTirePos].history.push({ date, action: act, cost, note });
-      if (cost > 0) window.expenses.push({ id: "exp_" + Date.now(), date, type: "Lastik Tamir / Değişim", amount: cost, paymentMethod: window.customPaymentMethods[0], desc: `${activeTirePos.replace('_', ' ').toUpperCase()} ${act} ${note ? '(' + note + ')' : ''}`, includeInExpert: true });
-      persistAllData(); closeModal("tireActionModal"); renderTiresTab(); renderAll();
+      e.preventDefault();
+      const currentSet = window.viewedTireSet || "summer";
+      const act = document.getElementById("taAction").value;
+      const cost = parseFloat(document.getElementById("taCost").value) || 0;
+      const note = document.getElementById("taNote").value.trim();
+      const date = document.getElementById("taDate").value;
+
+      if (!window.tireData[currentSet][activeTirePos]) {
+        window.tireData[currentSet][activeTirePos] = { status: "Sorunsuz", history: [] };
+      }
+      window.tireData[currentSet][activeTirePos].status = act;
+      if (!window.tireData[currentSet][activeTirePos].history) {
+        window.tireData[currentSet][activeTirePos].history = [];
+      }
+      window.tireData[currentSet][activeTirePos].history.push({ date, action: act, cost, note });
+
+      if (cost > 0) {
+        window.expenses.push({
+          id: "exp_" + Date.now(),
+          date,
+          type: "Lastik Tamir / Değişim",
+          amount: cost,
+          paymentMethod: window.customPaymentMethods[0],
+          desc: `${currentSet === 'summer' ? 'Yazlık' : 'Kışlık'} ${activeTirePos.replace('_', ' ').toUpperCase()} ${act} ${note ? '(' + note + ')' : ''}`,
+          includeInExpert: true
+        });
+      }
+
+      persistAllData();
+      closeModal("tireActionModal");
+      renderTiresTab();
+      renderAll();
     }
 
     // --- RAPOR MODÜLÜ ---
@@ -3486,6 +3832,22 @@ function saveRewardEntry(e) {
         const ff = window.fuels.filter(f => selectedYear === "all" || (f.date && f.date.startsWith(selectedYear)));
         renderCharts(calculateFuelMetrics(ff));
       } else { body.classList.add("hidden"); body.style.display="none"; icon.innerText = "▼ Göster"; }
+    }
+
+    let isAdvToolsAccordionOpen = false;
+    function toggleAdvToolsAccordion() {
+      const body = document.getElementById("advToolsAccordionBody");
+      const icon = document.getElementById("advToolsAccordionIcon");
+      isAdvToolsAccordionOpen = !isAdvToolsAccordionOpen;
+      if (isAdvToolsAccordionOpen) {
+        body.classList.remove("hidden");
+        body.style.display = "block";
+        if (icon) icon.innerText = "▲ Gizle";
+      } else {
+        body.classList.add("hidden");
+        body.style.display = "none";
+        if (icon) icon.innerText = "▼ Göster";
+      }
     }
 
     function processMonthlyData(calcFuels) {
@@ -3566,6 +3928,7 @@ function saveRewardEntry(e) {
     }
 
 
+    let currentLandscapeType = 'km'; // 'km', 'fuel', 'price'
     let currentLandscapeMode = 'km'; // 'km', 'tl', 'lit'
     let currentLandscapeMonthKey = null;
 
@@ -3589,19 +3952,25 @@ function saveRewardEntry(e) {
     function switchLandscapeDailyMode(mode) {
       updateLandscapeModeButtonsUI(mode);
       if (currentLandscapeMonthKey) {
-        renderLandscapeDailyKm(currentLandscapeMonthKey);
+        if (currentLandscapeType === 'fuel') {
+          renderLandscapeDailyFuelPurchases(currentLandscapeMonthKey);
+        } else {
+          renderLandscapeDailyKm(currentLandscapeMonthKey);
+        }
       } else {
         renderLandscapeMonthlyKm();
       }
     }
 
     function openLandscapeChart(type) {
+      currentLandscapeType = type;
+      currentLandscapeMonthKey = null;
       const modeBtnContainer = document.getElementById("landscapeModeButtons");
+
       if (modeBtnContainer) {
         modeBtnContainer.classList.toggle("hidden", type === 'price');
       }
 
-      currentLandscapeMonthKey = null;
       if (type === 'fuel') {
         currentLandscapeMode = fuelChartMode;
       } else {
@@ -3669,7 +4038,9 @@ function saveRewardEntry(e) {
 
       document.getElementById("landscapeChartIcon").innerText = icon;
       document.getElementById("landscapeChartTitle").innerText = `${title} (Tam Ekran)`;
-      document.getElementById("landscapeChartSubText").innerText = "Sütuna tıklayarak o ayın GÜNLÜK analizine inin";
+      document.getElementById("landscapeChartSubText").innerText = currentLandscapeType === 'fuel' 
+        ? "Sütuna tıklayarak o aydaki GERÇEK YAKIT ALIMLARINA inin" 
+        : "Sütuna tıklayarak o ayın GÜNLÜK analizine inin";
 
       if (charts.landscape) { charts.landscape.destroy(); charts.landscape = null; }
       charts.landscape = new Chart(ctx, {
@@ -3685,7 +4056,11 @@ function saveRewardEntry(e) {
             if (elements.length > 0) {
               const index = elements[0].index;
               const selectedKey = m.fullKeys[index];
-              renderLandscapeDailyKm(selectedKey);
+              if (currentLandscapeType === 'fuel') {
+                renderLandscapeDailyFuelPurchases(selectedKey);
+              } else {
+                renderLandscapeDailyKm(selectedKey);
+              }
             }
           },
           scales: {
@@ -3697,10 +4072,10 @@ function saveRewardEntry(e) {
 
       const infoBox = document.getElementById("landscapeBottomInfoBox");
       infoBox.innerHTML = `
-        <div class="text-[11px] font-black text-cyan-600 dark:text-cyan-400 mb-1">📅 Aylık Döküm (Günlük Detay İçin Aya Tıklayın):</div>
+        <div class="text-[11px] font-black text-cyan-600 dark:text-cyan-400 mb-1">📅 Aylık Döküm (Detay İçin Aya Tıklayın):</div>
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[10px]">
           ${m.fullKeys.map((mk, idx) => `
-            <div onclick="renderLandscapeDailyKm('${mk}')" class="p-2 theme-sub-box rounded-lg cursor-pointer hover:border-cyan-500 transition-colors">
+            <div onclick="${currentLandscapeType === 'fuel' ? `renderLandscapeDailyFuelPurchases('${mk}')` : `renderLandscapeDailyKm('${mk}')`}" class="p-2 theme-sub-box rounded-lg cursor-pointer hover:border-cyan-500 transition-colors">
               <span class="custom-muted block font-bold">${mk}</span>
               <b class="text-blue-500 font-black">${m.kmData[idx].toLocaleString('tr-TR')} KM</b>
               <span class="custom-muted block text-[9px] mt-0.5">₺${m.costData[idx].toLocaleString('tr-TR')} • ${m.litData[idx]} L</span>
@@ -3708,6 +4083,84 @@ function saveRewardEntry(e) {
           `).join('')}
         </div>
       `;
+    }
+
+    // YENİ: YAKIT TRENDİNE ÖZEL GERÇEK ALIM DÖKÜMÜ (FİŞLER)
+    function renderLandscapeDailyFuelPurchases(monthKey) {
+      currentLandscapeMonthKey = monthKey;
+      document.getElementById("btnReturnToMonthlyKm").classList.remove("hidden");
+
+      const monthFuels = window.fuels.filter(f => f.date && f.date.startsWith(monthKey))
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+      const labels = monthFuels.map(f => {
+        const d = new Date(f.date);
+        return `${d.getDate().toString().padStart(2, '0')} ${f.station}`;
+      });
+
+      const isTlMode = currentLandscapeMode === 'tl' || currentLandscapeMode === 'km';
+      const values = monthFuels.map(f => isTlMode ? Math.round(f.total) : parseFloat(f.liters.toFixed(1)));
+      const barColor = isTlMode ? '#f59e0b' : '#06b6d4';
+      const labelPrefix = isTlMode ? 'Alınan Tutar (₺)' : 'Alınan Hacim (L)';
+
+      document.getElementById("landscapeChartIcon").innerText = '⛽';
+      document.getElementById("landscapeChartTitle").innerText = `${monthKey} - Gerçek Yakıt Alımları`;
+      document.getElementById("landscapeChartSubText").innerText = "İstasyondan fiilen alınan yakıt fişleri dökümü";
+
+      const ctx = document.getElementById("landscapeCanvas").getContext("2d");
+      const gC = getThemeGridColor();
+      const tC = getThemeTextColor();
+
+      if (charts.landscape) { charts.landscape.destroy(); charts.landscape = null; }
+      charts.landscape = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels.length ? labels : ["Alım Yok"],
+          datasets: [{ label: labelPrefix, data: values.length ? values : [0], backgroundColor: barColor, borderRadius: 6 }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { grid: { color: gC }, ticks: { color: tC, font: { size: 10, weight: 'bold' } } },
+            y: { grid: { color: gC }, ticks: { color: tC } }
+          }
+        }
+      });
+
+      const infoBox = document.getElementById("landscapeBottomInfoBox");
+      if (monthFuels.length === 0) {
+        infoBox.innerHTML = `<div class="text-center custom-muted text-[10px] py-2">${monthKey} döneminde yakıt alımı bulunmuyor.</div>`;
+      } else {
+        let sumTl = 0, sumLit = 0;
+        monthFuels.forEach(f => { sumTl += f.total; sumLit += f.liters; });
+
+        infoBox.innerHTML = `
+          <div class="flex justify-between items-center text-[11px] font-black text-amber-500 mb-1 border-b border-slate-700/40 pb-1">
+            <span>⛽ ${monthKey} Ayı Fiş Dökümü (${monthFuels.length} Alım)</span>
+            <span>Toplam: ₺${Math.round(sumTl).toLocaleString('tr-TR')} • ${sumLit.toFixed(1)} L</span>
+          </div>
+          <div class="space-y-1">
+            ${monthFuels.map(f => {
+              const uP = f.liters > 0 ? (f.total / f.liters).toFixed(2) : "0.00";
+              const isFull = f.isFull !== undefined ? f.isFull : (f.fillLevel === 'full');
+              return `
+                <div class="p-2 theme-sub-box rounded-lg flex justify-between items-center text-[10px]">
+                  <div>
+                    <span class="font-bold text-amber-500">${f.station}</span>
+                    <span class="custom-muted ml-1.5">${formatDateTimeLabel(f.date)} • ${f.km.toLocaleString('tr-TR')} KM</span>
+                    <span class="text-[9px] ${isFull ? 'theme-badge-green' : 'theme-badge-amber'} px-1.5 py-0.2 rounded ml-1 font-bold">${isFull ? 'Tam Depo' : 'Ara Dolum'}</span>
+                  </div>
+                  <div class="text-right">
+                    <span class="text-cyan-500 font-bold">${f.liters} L (${uP} ₺/L)</span>
+                    <b class="text-emerald-500 ml-2 font-black">₺${parseFloat(f.total).toLocaleString('tr-TR')}</b>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `;
+      }
     }
 
     function renderLandscapeDailyKm(monthKey) {
@@ -3718,7 +4171,7 @@ function saveRewardEntry(e) {
         .sort((a, b) => new Date(a.date) - new Date(b.date) || a.km - b.km);
 
       const allFullFuels = window.fuels.filter(f => (f.isFull !== undefined ? f.isFull : f.fillLevel === 'full'))
-                                      .sort((a, b) => new Date(a.date) - new Date(b.date) || a.km - b.km);
+        .sort((a, b) => new Date(a.date) - new Date(b.date) || a.km - b.km);
 
       let dailyMap = {};
 
@@ -3750,7 +4203,7 @@ function saveRewardEntry(e) {
         }
 
         const pastFuels = window.fuels.filter(f => new Date(f.date) <= new Date(curr.date))
-                                      .sort((a, b) => new Date(a.date) - new Date(b.date));
+          .sort((a, b) => new Date(a.date) - new Date(b.date));
         let unitPrice = 0;
         if (pastFuels.length > 0 && pastFuels[pastFuels.length - 1].liters > 0) {
           const lF = pastFuels[pastFuels.length - 1];
@@ -3870,19 +4323,30 @@ function saveRewardEntry(e) {
       document.getElementById("dashPeriodTitle").innerText = `Dönem: ${selectedYear === "all" ? "Tüm Zamanlar" : selectedYear}`;
       document.getElementById("fuelPeriodIndicator").innerText = `Gösterilen: ${selectedYear === "all" ? "Tüm Zamanlar" : selectedYear}`;
       const activeOdos = window.odoLogs.filter(o => selectedYear === "all" || (o.date && o.date.startsWith(selectedYear)));
-document.getElementById("dashTotalEntries").innerText = `${ff.length + activeOdos.length + fe.length} Kayıt`;
+      document.getElementById("dashTotalEntries").innerText = `${ff.length + activeOdos.length + fe.length} Kayıt`;
 	  
       let tfc = 0, tl = 0; ff.forEach(f => { tfc += f.total; tl += f.liters; });
       let fc = 0, vc = tfc; fe.forEach(e => { if (EXPENSE_TYPES.FIXED.includes(e.type)) fc += e.amount; else vc += e.amount; });
+      const totalOwnership = fc + vc;
 	
-	  const curFormat = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
+      const curFormat = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
       document.getElementById("statFuelExpense").innerText = `₺${tfc.toLocaleString('tr-TR', curFormat)}`;
-      document.getElementById("statFuelVolume").innerText = `Hacim: ${tl.toFixed(1)} L`;
-      document.getElementById("statTotalOwnership").innerText = `₺${(fc + vc).toLocaleString('tr-TR', curFormat)}`;
-      const fixEl = document.getElementById("statFixedExpenseVal");
-      if (fixEl) fixEl.innerText = `₺${fc.toLocaleString('tr-TR', curFormat)}`;
-      document.getElementById("statVariableExpense").innerText = `₺${vc.toLocaleString('tr-TR', curFormat)}`;
+      document.getElementById("statFuelVolume").innerText = `Toplam Hacim: ${tl.toFixed(1)} L`;
+      document.getElementById("statTotalOwnership").innerText = `₺${totalOwnership.toLocaleString('tr-TR', curFormat)}`;
 
+      // Şemanızdaki Sabit ve Değişken % oranları hesaplaması:
+      const fixedPercent = totalOwnership > 0 ? Math.round((fc / totalOwnership) * 100) : 0;
+      const variablePercent = totalOwnership > 0 ? Math.round((vc / totalOwnership) * 100) : 0;
+
+      const fixBreakEl = document.getElementById("statFixedBreakdown");
+      if (fixBreakEl) {
+        fixBreakEl.innerText = `🏛 Sabit: ₺${Math.round(fc).toLocaleString('tr-TR')} (%${fixedPercent})`;
+      }
+      const varBreakEl = document.getElementById("statVariableBreakdown");
+      if (varBreakEl) {
+        varBreakEl.innerText = `🔧 Değişken: ₺${Math.round(vc).toLocaleString('tr-TR')} (%${variablePercent})`;
+      }
+     
      // TÜM SAYAÇ HAREKETLERİNİ (YAKIT + ODO) DİKKATE ALAN MESAFE VE MALİYET HESABI
       const allPeriodDistanceEvents = [
         ...ff.map(f => ({ km: f.km, date: f.date })),
@@ -4082,6 +4546,16 @@ document.getElementById("dashTotalEntries").innerText = `${ff.length + activeOdo
         }
 
         renderAll();
+        // PWA Kısayolları Kontrolü (?action=add_fuel veya ?action=add_odo)
+        const urlParams = new URLSearchParams(window.location.search);
+        const action = urlParams.get('action');
+        if (action === 'add_fuel') {
+          setTimeout(() => openFuelModal(), 150);
+          window.history.replaceState({}, document.title, window.location.pathname);
+        } else if (action === 'add_odo') {
+          setTimeout(() => openOdoModal(), 150);
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
       });
     });
   </script>
