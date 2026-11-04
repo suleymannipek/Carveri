@@ -223,7 +223,7 @@
             <input type="number" step="0.1" id="modalDistance" class="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3.5 text-lg text-white font-black mt-1.5 outline-none focus:accent-border text-center" />
           </div>
           <div class="flex-1">
-            <label class="text-[10px] text-zinc-400 uppercase font-bold tracking-widest">Tüketim (L)</label>
+            <label class="text-[10px] text-zinc-400 uppercase font-bold tracking-widest">Ort. Tüketim (L/100km)</label>
             <input type="number" step="0.1" id="modalConsumption" class="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3.5 text-lg text-white font-black mt-1.5 outline-none focus:accent-border text-center" />
           </div>
         </div>
@@ -344,6 +344,14 @@
       return R * c;
     }
 
+   // Süreyi 1 saatin altındayken mm:ss, 1 saat ve üzerindeyken hh:mm:ss formatına dönüştürür
+    function formatTripDuration(sec) {
+      const h = Math.floor(sec / 3600);
+      const m = String(Math.floor((sec % 3600) / 60)).padStart(2, '0');
+      const s = String(sec % 60).padStart(2, '0');
+      return h > 0 ? `${String(h).padStart(2, '0')}:${m}:${s}` : `${m}:${s}`;
+    }
+
     function initPassiveGps() {
       if (!navigator.geolocation) {
         document.getElementById("gpsStatusBadge").innerText = "GPS Yok ❌"; return;
@@ -362,13 +370,19 @@
           document.getElementById("liveSpeedText").innerText = kmh;
 
           if (isTracking) {
-            if (lastCoords) {
+            // İlk nokta kaydı
+            if (!lastCoords) {
+              lastCoords = { lat: latitude, lon: longitude };
+            } else if (accuracy < 40) {
               const stepDist = getDistanceBetweenPoints(lastCoords.lat, lastCoords.lon, latitude, longitude);
-              if (stepDist > 0.005 && stepDist < 2.0 && accuracy < 40) {
+              // Sadece geçerli mesafe kat edildiğinde sayaca ekle ve referans koordinatı güncelle
+              // Böylece dur-kalklarda biriken küçük adımlar sıfırlanıp kaybolmaz
+              if (stepDist >= 0.005 && stepDist < 2.0) {
                 totalDistanceKm += stepDist;
+                lastCoords = { lat: latitude, lon: longitude };
               }
             }
-            lastCoords = { lat: latitude, lon: longitude };
+
             document.getElementById("tripDistanceText").innerText = totalDistanceKm.toFixed(1);
 
             const burnedLiters = (totalDistanceKm * avgConsumption) / 100;
@@ -383,31 +397,37 @@
     }
 
     function startTripTracking() {
-      totalDistanceKm = 0; lastCoords = null; startTime = Date.now(); isTracking = true;
+      totalDistanceKm = 0; 
+      lastCoords = null; 
+      startTime = Date.now(); 
+      isTracking = true;
       requestWakeLock();
+      
       document.getElementById("btnGroupStart").classList.add("hidden");
       document.getElementById("btnGroupStop").classList.remove("hidden");
       
       document.getElementById("gpsStatusBadge").innerText = "Kayıt 🔴";
       document.getElementById("gpsStatusBadge").classList.add("animate-pulse");
 
+      if (timerInterval) clearInterval(timerInterval);
       timerInterval = setInterval(() => {
         const sec = Math.floor((Date.now() - startTime) / 1000);
-        const m = String(Math.floor(sec / 60)).padStart(2, '0');
-        const s = String(sec % 60).padStart(2, '0');
-        document.getElementById("tripTimeText").innerText = `${m}:${s}`;
+        document.getElementById("tripTimeText").innerText = formatTripDuration(sec);
       }, 1000);
     }
 
     function cancelTripTracking() {
       if (!confirm("Bu rota kaydını iptal etmek istediğinize emin misiniz?")) return;
-      stopGpsWatch(); resetDisplay(); initPassiveGps();
+      stopGpsWatch(); 
+      resetDisplay(); 
+      initPassiveGps();
     }
 
     function stopGpsWatch() {
       if (watchId !== null) navigator.geolocation.clearWatch(watchId);
       if (timerInterval) clearInterval(timerInterval);
-      releaseWakeLock(); isTracking = false;
+      releaseWakeLock(); 
+      isTracking = false;
     }
 
     function resetDisplay() {
@@ -435,17 +455,27 @@
 
     function closeFinishModal() {
       document.getElementById("finishModal").classList.add("hidden");
-      startTime = Date.now() - (document.getElementById("tripTimeText").innerText.split(":")[0]*60000 + document.getElementById("tripTimeText").innerText.split(":")[1]*1000);
+      
+      // Hem mm:ss hem hh:mm:ss formatlarını destekleyen güvenli süre geri yükleme
+      const parts = document.getElementById("tripTimeText").innerText.split(":").map(Number);
+      let pastMs = 0;
+      if (parts.length === 3) {
+        pastMs = (parts[0] * 3600 + parts[1] * 60 + parts[2]) * 1000;
+      } else if (parts.length === 2) {
+        pastMs = (parts[0] * 60 + parts[1]) * 1000;
+      }
+      
+      startTime = Date.now() - pastMs;
       isTracking = true;
       initPassiveGps();
       
       document.getElementById("gpsStatusBadge").innerText = "Kayıt 🔴";
       document.getElementById("gpsStatusBadge").classList.add("animate-pulse");
+
+      if (timerInterval) clearInterval(timerInterval);
       timerInterval = setInterval(() => {
         const sec = Math.floor((Date.now() - startTime) / 1000);
-        const m = String(Math.floor(sec / 60)).padStart(2, '0');
-        const s = String(sec % 60).padStart(2, '0');
-        document.getElementById("tripTimeText").innerText = `${m}:${s}`;
+        document.getElementById("tripTimeText").innerText = formatTripDuration(sec);
       }, 1000);
     }
 
